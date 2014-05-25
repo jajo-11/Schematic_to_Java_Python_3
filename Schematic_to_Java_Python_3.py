@@ -237,6 +237,8 @@ class MainWindow(QtGui.QMainWindow):
                         break
 
             size = self.height * self.length * self.width #calculate block count
+            print(self.length)
+            print(self.width)
             File_out_name = self.lineedit_File_out_Path.text()
 
             #test for unix or windows directory seperators (/ vs. \) so the name can be splited from the path
@@ -373,83 +375,83 @@ class MainWindow(QtGui.QMainWindow):
 
                 file_out.write('		return true;\n\n	}')
 
-            #if self.checkbox_rotation_2.isChecked():
+            if self.checkbox_rotation_2.isChecked():
+                
+                if self.combobox_check_points.currentText() == 'Corners':
+                    file_out.write\
+                        (
+                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	{\n		' + \
+                        'if(!LocationIsValidSpawn(world, x, y, z) ||' +\
+                        ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z) ||' +\
+                        ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z + ' + str(self.width - 1) + ') ||' +\
+                        ' !LocationIsValidSpawn(world, x, y, z + ' +  str(self.width - 1) + '))\n' +\
+                        '		{\n			return false;\n		}\n\n'
+                        )
+                elif self.combobox_check_points.currentText() == 'Center':
+                    file_out.write\
+                        (
+                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	{\n		' + \
+                        'if(!LocationIsValidSpawn(world, x + ' + str(self.length // 2) + ', y, z + ' + str(self.width // 2) + '))\n' +\
+                        '		{\n			return false;\n		}\n\n' \
+                        )
+                else:
+                    file_out.write\
+                        (
+                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	{\n		' + \
+                        'if(!LocationIsValidSpawn\n		(\n' \
+                        )
+                    for blocks in range(0, self.width * self.length):
 
-            #    if self.combobox_check_points.currentText() == 'Corners':
-            #        file_out.write\
-            #            (
-            #            '	public boolean generate_r90(World world, Random rand, int x, int y, int z)\n' +\
-            #            '	{\n		' + \
-            #            'if(!LocationIsValidSpawn(world, x, y, z) ||' +\
-            #            ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' +\
-            #            ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z + ' + str(self.length - 1) + ') ||' +\
-            #            ' !LocationIsValidSpawn(world, x, y, z + ' +  str(self.length - 1) + '))\n' +\
-            #            '		{\n			return false;\n		}\n\n'
-            #            )
-            #    elif self.combobox_check_points.currentText() == 'Center':
-            #        file_out.write\
-            #            (
-            #            '	public boolean generate_r90(World world, Random rand, int x, int y, int z)\n' +\
-            #            '	{\n		' + \
-            #            'if(!LocationIsValidSpawn(world, x + ' + str(self.width // 2) + ', y, z + ' + str(self.length // 2) + '))\n' +\
-            #            '		{\n			return false;\n		}\n\n' \
-            #            )
-            #    else:
-            #        file_out.write\
-            #            (
-            #            '	public boolean generate_r90(World world, Random rand, int x, int y, int z)\n' +\
-            #            '	{\n		' + \
-            #            'if(!LocationIsValidSpawn\n		(\n' \
-            #            )
-            #        for blocks in range(0, self.width * self.length):
+                        if z == 0:
+                            x = x + 1
+                            z = z = self.width
+                        if blocks != 0:
+                            z = z - 1
+                        else:
+                            x = 0
+                            z = self.width - 1
 
-            #            if z == 0:
-            #                x = x + 1
-            #                z = self.length
-            #            if blocks != 0:
-            #                z = z - 1
-            #            else:
-            #                x = 0
-            #                z = self.length - 1
+                        if blocks == ((self.width * self.length) - 1):
+                            file_out.write('		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(z) + ')\n	    	)\n\n')
+                        else:
+                            file_out.write('		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(z) + ' ||\n')
 
-            #            if blocks == ((self.width * self.length) - 1):
-            #                file_out.write('		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(z) + ')\n	    	)\n\n')
-            #            else:
-            #                file_out.write('		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(z) + ' ||\n')
-
-            #    for i in range(0, size):
+                for i in range(0, size):
     
-            #        if z == 0:
-            #            if x == self.width - 1:
-            #                y = y + 1
-            #                x = 0
-            #            else:
-            #                x = x + 1
-            #            z = self.length - 1
-            #        if i != 0:
-            #            z = z - 1
-            #        else:
-            #            x = 0
-            #            y = 0
-            #            z = self.length - 1
-            #        if block_list[i] == 0 and do_not_generate_air == True:
-            #            pass
-            #        elif str(block_name[block_id.index(block_list[i])]) in non_solid_blocks:
-            #            blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int  (self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(block_name[block_id.index(block_list[i])]) + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
-            #        else:
-            #            file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(block_name[block_id.index(block_list[i])]) + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
+                    if z == 0:
+                        if x == self.length - 1:
+                            y = y + 1
+                            x = 0
+                        else:
+                            x = x + 1
+                        z = self.width
+                    if i != 0:
+                        z = z - 1
+                    else:
+                        x = 0
+                        y = 0
+                        z = self.width - 1
+                    if block_list[i] == 0 and do_not_generate_air == True:
+                        pass
+                    elif str(block_name[block_id.index(block_list[i])]) in non_solid_blocks:
+                        blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int  (self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(block_name[block_id.index(block_list[i])]) + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
+                    else:
+                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(block_name[block_id.index(block_list[i])]) + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
 
-            #        g = g + 1
-            #        if g == 1500:
-            #            c = c + 1
-            #            file_out.write('\n		generate_r90_' + str(c) + '(world, rand, x, y, z);\n' +\
-            #                '		return true;\n\n	}\n' +\
-            #                '	public boolean generate_r90_' + str(c) + '(World world, Random rand, int x, int y, int z)\n' +\
-            #                '	{\n\n')
-            #            g = 0
+                    g = g + 1
+                    if g == 1500:
+                        c = c + 1
+                        file_out.write('\n		generate' + str(c) + '(world, rand, x, y, z);\n' +\
+                            '		return true;\n\n	}\n' +\
+                            '	public boolean generate' + str(c) + '(World world, Random rand, int x, int y, int z)\n' +\
+                            '	{\n\n')
+                        g = 0
 
-            #    for i in blocks_placed_last:
-            #        file_out.write(i)
+                for i in blocks_placed_last:
+                    file_out.write(i)
 
                 file_out.write('		return true;\n\n	}')
 
