@@ -116,14 +116,16 @@ class MainWindow(QtGui.QMainWindow):
         x = 0
         y = 0
         z = 0
-        size = 0
-        block_id = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 162, 163, 164, 165, 166, 167, 170, 171, 172, 173, 174, 175]
-        block_name = ['air', 'stone', 'grass', 'dirt', 'cobblestone', 'planks', 'sapling', 'bedrock', 'flowing_water', 'water', 'flowing_lava', 'lava', 'sand', 'gravel', 'gold_ore', 'iron_ore', 'coal_ore', 'log', 'leaves', 'sponge', 'glass', 'lapis_ore', 'lapis_block', 'dispenser', 'sandstone', 'note', 'bed', 'golden_rail', 'detector_rail', 'sticky_piston', 'web', 'tallgrass', 'deadbush', 'piston', 'piston_head', 'wool', 'piston_extension', 'yellow_flower', 'red_flower', 'brown_mushroom', 'red_mushroom', 'gold_block', 'iron_block', 'double_stone_slab', 'stone_slab', 'brick_block', 'tnt', 'bookshelf', 'mossy_cobblestone', 'obsidian', 'torch', 'fire', 'mob_spawner', 'oak_stairs', 'chest', 'redstone_wire', 'diamond_ore', 'diamond_block', 'crafting_table', 'red_mushroom', 'farmland', 'furnace', 'lit_furnace', 'standing_sign', 'wooden_door', 'ladder', 'rail', 'stone_stairs', 'wall_sign', 'lever', 'stone_pressure_plate', 'iron_door', 'wooden_pressure_plate', 'redstone_ore', 'lit_redstone_ore', 'unlit_redstone_torch', 'redstone_torch', 'stone_button', 'snow_layer', 'ice', 'snow', 'cactus', 'clay', 'reeds', 'jukebox', 'fence', 'pumpkin', 'netherrack', 'soul_sand', 'glowstone', 'portal', 'lit_pumpkin', 'cake', 'unpowered_repeater', 'powered_repeater', 'stained_glass', 'trapdoor', 'monster_egg', 'stonebrick', 'brown_mushroom_block', 'red_mushroom_block', 'iron_bars', 'glass_pane', 'melon_block', 'pumpkin_stem', 'melon_stem', 'vine', 'fence_gate', 'brick_stairs', 'stone_brick_stairs', 'Myceliummycelium', 'waterlily', 'nether_brick', 'nether_brick_fence', 'nether_brick_stairs', 'nether_wart', 'enchanting_table', 'brewing_stand', 'cauldron', 'end_portal', 'end_portal_frame', 'end_stone', 'dragon_egg', 'redstone_lamp', 'lit_redstone_lamp', 'double_wooden_slab', 'wooden_slab', 'cocoa', 'sandstone_stairs', 'emerald_ore', 'ender_chest', 'tripwire_hook', 'tripwire', 'emerald_block', 'spruce_stairs', 'birch_stairs', 'jungle_stairs', 'command_block', 'beacon', 'cobblestone_wall', 'flower_pot', 'carrots', 'potatoes', 'wooden_button', 'skull', 'anvil', 'trapped_chest', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'unpowered_comparator', 'powered_comparator', 'daylight_detector', 'redstone_block', 'quartz_ore', 'hopper', 'quartz_block', 'quartz_stairs', 'activator_rail', 'dropper', 'stained_hardened_clay', 'stained_glass', 'log2', 'acacia_stairs', 'dark_oak_stairs', 'slime_block', 'barrier', 'iron_trapdoor', 'hay_block', 'carpet', 'hardened_clay', 'coal_block', 'packed_ice', 'double_plant']
-        non_solid_blocks = ['torch', 'ladder', 'wall_sign', 'lever', 'unlit_redstone_torch', 'redstone_torch', 'stone_button']
-        blocks_placed_last = []
+        size = 0 #blocks in the struckture
+        block_id = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 162, 163, 164, 165, 166, 167, 170, 171, 172, 173, 174, 175]#all the ids currently used in the game
+        block_name = ['air', 'stone', 'grass', 'dirt', 'cobblestone', 'planks', 'sapling', 'bedrock', 'flowing_water', 'water', 'flowing_lava', 'lava', 'sand', 'gravel', 'gold_ore', 'iron_ore', 'coal_ore', 'log', 'leaves', 'sponge', 'glass', 'lapis_ore', 'lapis_block', 'dispenser', 'sandstone', 'note', 'bed', 'golden_rail', 'detector_rail', 'sticky_piston', 'web', 'tallgrass', 'deadbush', 'piston', 'piston_head', 'wool', 'piston_extension', 'yellow_flower', 'red_flower', 'brown_mushroom', 'red_mushroom', 'gold_block', 'iron_block', 'double_stone_slab', 'stone_slab', 'brick_block', 'tnt', 'bookshelf', 'mossy_cobblestone', 'obsidian', 'torch', 'fire', 'mob_spawner', 'oak_stairs', 'chest', 'redstone_wire', 'diamond_ore', 'diamond_block', 'crafting_table', 'red_mushroom', 'farmland', 'furnace', 'lit_furnace', 'standing_sign', 'wooden_door', 'ladder', 'rail', 'stone_stairs', 'wall_sign', 'lever', 'stone_pressure_plate', 'iron_door', 'wooden_pressure_plate', 'redstone_ore', 'lit_redstone_ore', 'unlit_redstone_torch', 'redstone_torch', 'stone_button', 'snow_layer', 'ice', 'snow', 'cactus', 'clay', 'reeds', 'jukebox', 'fence', 'pumpkin', 'netherrack', 'soul_sand', 'glowstone', 'portal', 'lit_pumpkin', 'cake', 'unpowered_repeater', 'powered_repeater', 'stained_glass', 'trapdoor', 'monster_egg', 'stonebrick', 'brown_mushroom_block', 'red_mushroom_block', 'iron_bars', 'glass_pane', 'melon_block', 'pumpkin_stem', 'melon_stem', 'vine', 'fence_gate', 'brick_stairs', 'stone_brick_stairs', 'Myceliummycelium', 'waterlily', 'nether_brick', 'nether_brick_fence', 'nether_brick_stairs', 'nether_wart', 'enchanting_table', 'brewing_stand', 'cauldron', 'end_portal', 'end_portal_frame', 'end_stone', 'dragon_egg', 'redstone_lamp', 'lit_redstone_lamp', 'double_wooden_slab', 'wooden_slab', 'cocoa', 'sandstone_stairs', 'emerald_ore', 'ender_chest', 'tripwire_hook', 'tripwire', 'emerald_block', 'spruce_stairs', 'birch_stairs', 'jungle_stairs', 'command_block', 'beacon', 'cobblestone_wall', 'flower_pot', 'carrots', 'potatoes', 'wooden_button', 'skull', 'anvil', 'trapped_chest', 'light_weighted_pressure_plate', 'heavy_weighted_pressure_plate', 'unpowered_comparator', 'powered_comparator', 'daylight_detector', 'redstone_block', 'quartz_ore', 'hopper', 'quartz_block', 'quartz_stairs', 'activator_rail', 'dropper', 'stained_hardened_clay', 'stained_glass', 'log2', 'acacia_stairs', 'dark_oak_stairs', 'slime_block', 'barrier', 'iron_trapdoor', 'hay_block', 'carpet', 'hardened_clay', 'coal_block', 'packed_ice', 'double_plant']# list of blocks ids are stored in list block_id with the same index number
+        non_solid_blocks = ['torch', 'ladder', 'wall_sign', 'lever', 'unlit_redstone_torch', 'redstone_torch', 'stone_button'] #list of blocks wich could pop of the wall
+        blocks_placed_last = [] #a list of blocks wich are placed after all the other blocks to prevent them from poping of the walls
         chest = False
         g = 0 #counts up to 1500 to split the methode
         c = 1 #counts the total number of "setblock" methodes
+        rotations = [] #list contains checked rotations
+        rotationscount = 0 #counts the total items in rotations[]
     
         #print('Schematic to Java Version 1.0')
         #print('By jajo_11')
@@ -268,7 +270,18 @@ class MainWindow(QtGui.QMainWindow):
 
             for block in self.generate_on:
                 file_out.write('			' + block + ',\n')
-                
+
+            if self.checkbox_rotation_1.isChecked():
+                rotations.append('generate_r0')
+            if self.checkbox_rotation_2.isChecked():
+                rotations.append('generate_r1')
+            if self.checkbox_rotation_3.isChecked():
+                rotations.append('generate_r2')
+            if self.checkbox_rotation_4.isChecked():
+                rotations.append('generate_r3')      
+            for i in rotations:
+                rotationscount = rotationscount + 1      
+
             file_out.write\
                 (
                 '		};\n	}\n\n' +\
@@ -291,8 +304,15 @@ class MainWindow(QtGui.QMainWindow):
                 '			{\n				return true;\n			}\n' +\
                 '			else if (block.getMaterial() == Material.plants && blockBelow == i)\n' +\
                 '			{\n				return true;\n			}\n		}\n' +\
-                '		return false;\n	}\n\n'
+                '		return false;\n	}\n\n' +\
+                '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                '	{\n		' +\
+                'int i = rand.nextInt(' + str(rotationscount) + ');\n\n' \
                 )
+            for i in range(0, rotationscount):
+                file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[i] + '(world, rand, x, y, z);\n		}\n\n')
+
+            file_out.write('       return true;\n\n	}\n\n')
 
 
             if self.checkbox_rotation_1.isChecked():
@@ -300,7 +320,7 @@ class MainWindow(QtGui.QMainWindow):
                 if self.combobox_check_points.currentText() == 'Corners':
                     file_out.write\
                         (
-                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
                         '	{\n		' + \
                         'if(!LocationIsValidSpawn(world, x, y, z) ||' +\
                         ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' +\
@@ -311,7 +331,7 @@ class MainWindow(QtGui.QMainWindow):
                 elif self.combobox_check_points.currentText() == 'Center':
                     file_out.write\
                         (
-                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
                         '	{\n		' + \
                         'if(!LocationIsValidSpawn(world, x + ' + str(self.width // 2) + ', y, z + ' + str(self.length // 2) + '))\n' +\
                         '		{\n			return false;\n		}\n\n' \
@@ -319,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     file_out.write\
                         (
-                        '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +\
+                        '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
                         '	{\n		' + \
                         'if(!LocationIsValidSpawn\n		(\n' \
                         )
@@ -364,9 +384,9 @@ class MainWindow(QtGui.QMainWindow):
                     g = g + 1
                     if g == 1500:
                         c = c + 1
-                        file_out.write('\n		generate' + str(c) + '(world, rand, x, y, z);\n' +\
+                        file_out.write('\n		generate_r0' + str(c) + '(world, rand, x, y, z);\n' +\
                             '		return true;\n\n	}\n' +\
-                            '	public boolean generate' + str(c) + '(World world, Random rand, int x, int y, int z)\n' +\
+                            '	public boolean generate_r0' + str(c) + '(World world, Random rand, int x, int y, int z)\n' +\
                             '	{\n\n')
                         g = 0
 
