@@ -444,7 +444,7 @@ class MainWindow(QtGui.QMainWindow):
                                 y = y + 1
                                 z = self.length
                             else:
-                                z = z + 1
+                                z = z - 1
                             x = self.width
                         if i != 0:
                             x = x - 1
@@ -463,7 +463,7 @@ class MainWindow(QtGui.QMainWindow):
                                 x = x - 1
                             z = -1
                         if i != 0:
-                            z = z - 1
+                            z = z + 1
                         else:
                             x = self.length - 1
                             y = 0
@@ -484,9 +484,9 @@ class MainWindow(QtGui.QMainWindow):
                             '	public boolean ' + rotations + str(c) + '(World world, Random rand, int x, int y, int z)\n' +\
                             '	{\n\n')
                         g = 0
-
-                    for i in blocks_placed_last:
-                        file_out.write(i)
+                    if i == size - 1:
+                        for j in blocks_placed_last:
+                            file_out.write(j)
 
                 file_out.write('		return true;\n\n	}')
 
