@@ -321,7 +321,7 @@ class MainWindow(QtGui.QMainWindow):
                     if self.combobox_check_points.currentText() == 'Corners':
                         file_out.write\
                             (
-                            '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
+                            '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' +\
                             '	{\n		' + \
                             'if(!LocationIsValidSpawn(world, x, y, z) ||' +\
                             ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' +\
@@ -332,7 +332,7 @@ class MainWindow(QtGui.QMainWindow):
                     elif self.combobox_check_points.currentText() == 'Center':
                         file_out.write\
                             (
-                            '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
+                            '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' +\
                             '	{\n		' + \
                             'if(!LocationIsValidSpawn(world, x + ' + str(self.width // 2) + ', y, z + ' + str(self.length // 2) + '))\n' +\
                             '		{\n			return false;\n		}\n\n' \
@@ -340,7 +340,7 @@ class MainWindow(QtGui.QMainWindow):
                     else:
                         file_out.write\
                             (
-                            '	public boolean generate_r0(World world, Random rand, int x, int y, int z)\n' +\
+                            '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' +\
                             '	{\n		' + \
                             'if(!LocationIsValidSpawn\n		(\n' \
                             )
@@ -442,7 +442,7 @@ class MainWindow(QtGui.QMainWindow):
                         if x == 0:
                             if z == 0:
                                 y = y + 1
-                                z = self.length
+                                z = self.length - 1
                             else:
                                 z = z - 1
                             x = self.width
@@ -488,7 +488,7 @@ class MainWindow(QtGui.QMainWindow):
                         for j in blocks_placed_last:
                             file_out.write(j)
 
-                file_out.write('		return true;\n\n	}')
+                file_out.write('		return true;\n\n	}\n')
 
 
             file_out.write('\n}')
