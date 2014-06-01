@@ -126,6 +126,17 @@ class MainWindow(QtGui.QMainWindow):
         c = 1 #counts the total number of "setblock" methodes
         rotations = [] #list contains checked rotations
         rotationscount = 0 #counts the total items in rotations[]
+        options = False
+
+        #trys to loade options file
+        try:
+            options_file = open('options')
+            options_in = options_file.readline()
+            if options_in == 'True' or options_in == 'true':
+                options = True
+            options_file.close()
+        except:
+            pass
     
         #print('Schematic to Java Version 1.0')
         #print('By jajo_11')
@@ -239,8 +250,8 @@ class MainWindow(QtGui.QMainWindow):
                         break
 
             size = self.height * self.length * self.width #calculate block count
-            print(self.length)
-            print(self.width)
+            #print(self.length)
+            #print(self.width)
             File_out_name = self.lineedit_File_out_Path.text()
 
             #test for unix or windows directory seperators (/ vs. \) so the name can be splited from the path
@@ -309,11 +320,25 @@ class MainWindow(QtGui.QMainWindow):
                 '	{\n		' +\
                 'int i = rand.nextInt(' + str(rotationscount) + ');\n\n' \
                 )
+
+            #generates code for random decision of the rotation
             for i in range(0, rotationscount):
                 file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[i] + '(world, rand, x, y, z);\n		}\n\n')
-
             file_out.write('       return true;\n\n	}\n\n')
 
+            #checks for advanced options
+            if options == True:
+
+                #same as obove only that this one is alredy called with a certain rotation disabeld by default
+                file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n') 
+                for i in range(0, rotationscount):
+                    file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[i] + '(world, rand, x, y, z);\n		}\n\n')
+                file_out.write('       return true;\n\n	}\n\n')
+
+                #creates funcion for geting the count of rotations disabeld by default
+                file_out.write('	public int getrotations()\n	{\n\n		return ' + str(rotationscount) + ';\n\n    }\n\n') 
+
+            #generates the code witch checks fore valid spawn locations
             for rotations in rotations:
 
                 if rotations == 'generate_r0' or rotations == 'generate_r2':
@@ -487,6 +512,7 @@ class MainWindow(QtGui.QMainWindow):
                     if i == size - 1:
                         for j in blocks_placed_last:
                             file_out.write(j)
+                        blocks_placed_last.clear()
 
                 file_out.write('		return true;\n\n	}\n')
 
