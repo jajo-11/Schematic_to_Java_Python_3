@@ -1,3 +1,4 @@
+import pickle
 from PySide import QtCore, QtGui
 
 def components(self):
@@ -84,8 +85,12 @@ def tooltipsinit(self):
     self.button_add_block.setToolTip(self.tr('Adds the current block from the box on the left to the list below.'))
     self.button_remove_block.setToolTip(self.tr('Removes the selected item from the list below.'))
     self.list_Generate_on.setToolTip(self.tr('List of blocks considered as valid spawn blocks.'))
-    self.combobox_check_points.setToolTip(self.tr('Look to the left for more information.'))
+    self.combobox_check_points.setToolTip(self.tr('Sets where the function will look for the blocks selected above.\nCorners is recommended.'))
     self.spinbox_offset.setToolTip(self.tr('Set a height offset for your structure to make it fly or sink into the ground'))
+    self.checkbox_rotation_1.setToolTip(self.tr('If checked the Structure will be spawn unrotated.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+    self.checkbox_rotation_2.setToolTip(self.tr('If checked the Structure will be spawn rotated by 90 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+    self.checkbox_rotation_3.setToolTip(self.tr('If checked the Structure will be spawn rotated by 180 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+    self.checkbox_rotation_4.setToolTip(self.tr('If checked the Structure will be spawn rotated by 270 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.button_Start.setToolTip(self.tr('Starts the converting process.'))
     self.setToolTip(self.tr('Schematic to Java Structure by jajo_11 inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"'))
 
@@ -97,6 +102,73 @@ def preinit(self):
     self.combobox_Generate_on.setCurrentIndex(self.combobox_Generate_on.findText('Blocks.grass'))
     self.checkbox_rotation_1.setDisabled(True)
     self.checkbox_rotation_1.setChecked(True)
-    #self.checkbox_rotation_2.setDisabled(True)
-    #self.checkbox_rotation_3.setDisabled(True)
-    #self.checkbox_rotation_4.setDisabled(True)
+
+class dialog_custom_Block(QtGui.QDialog):
+    def __init__(self, parent, x, y, z, id):
+        super(dialog_custom_Block, self).__init__(parent)
+        self.x = x
+        self.y = y
+        self.z = z
+        self.id = id
+        self.createComponents()
+        self.createLayout()
+        self.createConnects()
+        self.setWindowTitle(self.tr('Custom Block Name'))
+
+    def createComponents(self):
+        self.label = QtGui.QLabel(self.tr('There is a unknown Block with the id ') + str(self.id) + self.tr(' at x: ') + str(self.x) + self.tr(' y: ') + str(self.y) + self.tr(' z: ') + str(self.z) + self.tr('\n You have to enter a name for the block here.'))
+        self.lineedit = QtGui.QLineEdit()
+        self.label_package = QtGui.QLabel(self.tr('Name of the Package where the block is registerd:'))
+        self.lineedit_package = QtGui.QLineEdit()
+        self.button_done = QtGui.QPushButton(self.tr('Done'))
+
+    def createLayout(self):
+        layoutDialog = QtGui.QVBoxLayout()
+        layoutDialog.addWidget(self.label)
+        layoutDialog.addWidget(self.lineedit)
+        layoutDialog.addWidget(self.label_package)
+        layoutDialog.addWidget(self.lineedit_package)
+        layoutDialog.addWidget(self.button_done)
+        self.setLayout(layoutDialog)
+
+    def createConnects(self):
+        self.button_done.clicked.connect(self.accept)
+
+    @property
+    def input_name(self):
+        return self.lineedit.text()
+
+    @property
+    def input_package(self):
+        return self.lineedit_package.text()
+
+class dialog_custom_Block_save(QtGui.QDialog):
+    def __init__(self, parent):
+        super(dialog_custom_Block_save, self).__init__(parent)
+        self.createComponents()
+        self.createLayout()
+        self.createConnects()
+        self.setWindowTitle(self.tr('Save Coustom Block Set'))
+
+    def createComponents(self):
+        self.label = QtGui.QLabel(self.tr('There were some unknown blocks in this schematic do you want to save their names for the future?'))
+        self.button_cancel = QtGui.QPushButton(self.tr('Don\'t Save'))
+        self.button_add = QtGui.QPushButton(self.tr('Add to existing Save'))
+        self.button_save = QtGui.QPushButton(self.tr('Save'))
+
+    def createLayout(self):
+        layoutDialog = QtGui.QVBoxLayout()
+        layoutDialog.addWidget(self.label)
+
+        layoutDialog2 = QtGui.QHBoxLayout()
+        layoutDialog2.addWidget(self.button_cancel)
+        layoutDialog2.addWidget(self.button_add)
+        layoutDialog2.addWidget(self.button_save)
+
+        layoutDialog.addLayout(layoutDialog2)
+        self.setLayout(layoutDialog)
+
+    def createConnects(self):
+        self.button_cancel.clicked.connect(self.reject)
+        self.button_add.clicked.connect(self.accept)
+        self.button_save.clicked.connect(self.accept)

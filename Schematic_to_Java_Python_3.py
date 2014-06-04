@@ -127,6 +127,12 @@ class MainWindow(QtGui.QMainWindow):
         rotations = [] #list contains checked rotations
         rotationscount = 0 #counts the total items in rotations[]
         options = False
+        custom_block = '' #name of the custom block (moded) handled last
+        custom_blocks = [] #contains all the custom block names assigned
+        custom_blocks_id = [] #All the custom ids. Index matching names in custom_blocks list
+        new_custom_blck = False #is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
+        additional_packages = [] #list stores all the additional imports for custom blocks
+        package = '' #stores last custom blocks package import
 
         #trys to loade options file
         try:
@@ -496,6 +502,22 @@ class MainWindow(QtGui.QMainWindow):
 
                     if block_list[i] == 0 and do_not_generate_air == True:
                         pass
+                    elif block_list[i] not in block_id:
+
+                        if block_list[i] in custom_blocks_id:
+                            coustom_block = coustom_blocks[coustom_blocks_id.index(block_list[i])]
+                        else:
+                            dialog = dialog_custom_Block(self, x, y, z, block_list[i])
+                            dialog.exec_()
+                            custom_block = dialog.input_name
+                            custom_blocks_id.append(block_list[i])
+                            custom_blocks.append(custom_block)
+                            new_custom_block = True
+                            package = dialog.input_package
+                            if package not in additional_packages:
+                                additional_packages.append(package)
+
+                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', ' + custom_block + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
                     elif str(block_name[block_id.index(block_list[i])]) in non_solid_blocks:
                         blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' + str(y + int  (self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(block_name[block_id.index(block_list[i])]) + ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
                     else:
@@ -516,11 +538,25 @@ class MainWindow(QtGui.QMainWindow):
 
                 file_out.write('		return true;\n\n	}\n')
 
-
             file_out.write('\n}')
+
+            ##writes additional imports for custom blocks
+            #if additional_packages:
+            #    file_out.seek(0)
+            #    for i in range(0, 11):
+            #        file_out.readline()
+            #    file_out.seek(file_out.tell())
+            #    for i in additional_packages:
+            #        file_out.write('\nimport ' + i + ';')
+            #    file_out.write('\n')
+
             #print('Done! ;)')
             self.done()
+            if new_custom_block == True:
+                dialog = dialog_custom_Block_save(self)
+                dialog.exec_()
         else:
+
             #print("This isn't a schematic! Exiting...")
             self.noschematic()
         file_in.close()
