@@ -112,6 +112,7 @@ class dialog_custom_Block(QtGui.QDialog):
         self.id = id
         self.createComponents()
         self.createLayout()
+        self.createInfo()
         self.createConnects()
         self.setWindowTitle(self.tr('Custom Block Name'))
 
@@ -130,6 +131,12 @@ class dialog_custom_Block(QtGui.QDialog):
         layoutDialog.addWidget(self.lineedit_package)
         layoutDialog.addWidget(self.button_done)
         self.setLayout(layoutDialog)
+
+    def createInfo(self):
+        self.lineedit.setPlaceholderText(self.tr('Modname.BlockName'))
+        self.lineedit.setToolTip(self.tr('Insert block name here (looks similar this: Modname.BlockName)'))
+        self.lineedit_package.setPlaceholderText(self.tr('Yourname.ModName.ModName'))
+        self.lineedit.setToolTip(self.tr('Insert package here (looks similar this: Yourname.ModName.ModName)'))
 
     def createConnects(self):
         self.button_done.clicked.connect(self.accept)

@@ -133,6 +133,8 @@ class MainWindow(QtGui.QMainWindow):
         new_custom_blck = False #is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
         additional_packages = [] #list stores all the additional imports for custom blocks
         package = '' #stores last custom blocks package import
+        File_out_rew = [] #If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
+        index_imports = 0 #index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
 
         #trys to loade options file
         try:
@@ -540,15 +542,24 @@ class MainWindow(QtGui.QMainWindow):
 
             file_out.write('\n}')
 
-            ##writes additional imports for custom blocks
-            #if additional_packages:
-            #    file_out.seek(0)
-            #    for i in range(0, 11):
-            #        file_out.readline()
-            #    file_out.seek(file_out.tell())
-            #    for i in additional_packages:
-            #        file_out.write('\nimport ' + i + ';')
-            #    file_out.write('\n')
+            #writes additional imports for custom blocks
+            if additional_packages:
+
+                #reading in file to rewrite it
+                file_out.close()
+                file_out = open(self.lineedit_File_out_Path.text(), 'r')
+                File_out_rew = file_out.readlines()
+                file_out.close()
+
+                file_out = open(self.lineedit_File_out_Path.text(), 'w')
+                index_imports = File_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
+                i = 0 #just for counting lines
+                for Import in additional_packages:
+                    i = i + 1
+                    File_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
+                File_out_rew.insert(index_imports + len(additional_packages), '\n')
+                file_out.seek(0)
+                file_out.writelines(File_out_rew)
 
             #print('Done! ;)')
             self.done()
