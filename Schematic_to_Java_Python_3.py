@@ -38,9 +38,8 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('Unexpected Error!\nPlease Contact the Devoloper (jajo_11)'))
 
     def filedialogin(self):
-        filedialog = QtGui.QFileDialog(self)
-        file = filedialog.getOpenFileName(self, u"Open File", '', 'Schematics (*.schematic)')
-        if filedialog.accepted:
+        file = QtGui.QFileDialog.getOpenFileName(self, u"Open File", QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
+        if file[0] != '':
             self.lineedit_File_in_Path.setText(file[0])
             if self.lineedit_File_out_Path.text() == '':
                 file2 = file[0]
@@ -55,8 +54,8 @@ class MainWindow(QtGui.QMainWindow):
             self.checkbox_rotation_1.setChecked(True)
 
     def filedialogout(self):
-        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", '', 'Java (*.java)')
-        if file is not None:
+        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.HomeLocation), 'Java (*.java)')
+        if file[0] != '':
             self.lineedit_File_out_Path.setText(file[0])
 
     def createConnects(self):
@@ -564,7 +563,7 @@ class MainWindow(QtGui.QMainWindow):
             #print('Done! ;)')
             self.done()
             if new_custom_block == True:
-                dialog = dialog_custom_Block_save(self)
+                dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id)
                 dialog.exec_()
         else:
 

@@ -1,4 +1,4 @@
-import pickle
+import pickle, os
 from PySide import QtCore, QtGui
 
 def components(self):
@@ -150,8 +150,10 @@ class dialog_custom_Block(QtGui.QDialog):
         return self.lineedit_package.text()
 
 class dialog_custom_Block_save(QtGui.QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent, names, ids):
         super(dialog_custom_Block_save, self).__init__(parent)
+        self.names = names
+        self.ids = ids
         self.createComponents()
         self.createLayout()
         self.createConnects()
@@ -177,5 +179,51 @@ class dialog_custom_Block_save(QtGui.QDialog):
 
     def createConnects(self):
         self.button_cancel.clicked.connect(self.reject)
-        self.button_add.clicked.connect(self.accept)
-        self.button_save.clicked.connect(self.accept)
+        self.button_add.clicked.connect(self.filedialog_save_add)
+        self.button_save.clicked.connect(self.filedialog_save)
+
+    def filedialog_save(self):
+        file = QtGui.QFileDialog.getSaveFileName(self, u"Save Custom Block Set", os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        if file[0] != '':
+            save_file = open(file[0], 'wb')
+            pickle.dump(self.names, save_file)
+            pickle.dump(self.ids, save_file)
+            save_file.close()
+        self.accept()
+
+    def filedialog_save_add(self):
+        file = QtGui.QFileDialog.getOpenFileName(self, u"Add to Custom Block Set", os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        if file[0] != '':
+            save_file = open(file[0], 'rb')
+            names_saved = []
+            ids_saved = []
+            all_yes = False
+            all_no = False
+            names_saved = pickle.load(save_file)
+            ids_saved = pickle.load(save_file)
+            for entry in self.ids:
+                if entry in ids_saved and all_yes == True:
+                    names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                if entry in ids_saved and all_yes == False and all_no == False:
+                    overwrite_Dialog = QtGui.QMessageBox()
+                    overwrite_Dialog.setWindowTitle(self.tr('Duplicate ids'))
+                    overwrite_Dialog.setText(self.tr('The Block \"' + self.names[self.ids.index(entry)] + '\" alredy exists as \"'  + names_saved[ids_saved.index(entry)] + '\"'))
+                    overwrite_Dialog.setInformativeText(self.tr('Do you want to override it?'))
+                    overwrite_Dialog.setStandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.NoAll | QtGui.QMessageBox.YesAll | QtGui.QMessageBox.Yes)
+                    overwrite_Dialog.setDefaultButton(QtGui.QMessageBox.Yes)
+                    overwrite_Dialog.setEscapeButton(QtGui.QMessageBox.No)
+                    overwrite_Dialog.setIcon(QtGui.QMessageBox.Question)
+                    ret = overwrite_Dialog.exec_()
+                    if ret == QtGui.QMessageBox.Yes:
+                        names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                    if ret == QtGui.QMessageBox.YesAll:
+                        all_yes = True
+                        names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                    if ret == QtGui.QMessageBox.NoAll:
+                        all_yes = True
+            save_file.close()
+            save_file = open(file[0], 'wb')
+            pickle.dump(names_saved, save_file)
+            pickle.dump(ids_saved, save_file)
+            save_file.close()
+        self.accept()
