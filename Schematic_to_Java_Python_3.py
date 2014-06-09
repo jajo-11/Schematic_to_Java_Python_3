@@ -129,7 +129,7 @@ class MainWindow(QtGui.QMainWindow):
         custom_block = '' #name of the custom block (moded) handled last
         custom_blocks = [] #contains all the custom block names assigned
         custom_blocks_id = [] #All the custom ids. Index matching names in custom_blocks list
-        new_custom_blck = False #is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
+        new_custom_block = False #is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
         additional_packages = [] #list stores all the additional imports for custom blocks
         package = '' #stores last custom blocks package import
         File_out_rew = [] #If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
@@ -502,11 +502,11 @@ class MainWindow(QtGui.QMainWindow):
                             z = 0
 
                     if block_list[i] == 0 and do_not_generate_air == True:
-                        pass
+                        g = g - 1
                     elif block_list[i] not in block_id:
 
                         if block_list[i] in custom_blocks_id:
-                            coustom_block = coustom_blocks[coustom_blocks_id.index(block_list[i])]
+                            custom_block = custom_blocks[custom_blocks_id.index(block_list[i])]
                         else:
                             dialog = dialog_custom_Block(self, x, y, z, block_list[i])
                             dialog.exec_()

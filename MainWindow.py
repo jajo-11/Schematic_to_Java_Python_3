@@ -221,6 +221,9 @@ class dialog_custom_Block_save(QtGui.QDialog):
                         names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
                     if ret == QtGui.QMessageBox.NoAll:
                         all_yes = True
+                else:
+                    ids_saved.append(entry)
+                    names_saved.append(self.names[self.ids.index(entry)])
             save_file.close()
             save_file = open(file[0], 'wb')
             pickle.dump(names_saved, save_file)
