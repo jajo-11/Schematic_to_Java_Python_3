@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-import gzip
-import sys
+import gzip, sys, pickle
 from MainWindow import *
 from PySide import QtGui
 
 class MainWindow(QtGui.QMainWindow):
 
     generate_on = []
+    options = False
 
     def __init__(self, * args):
         QtGui.QMainWindow.__init__(self, *args)
@@ -54,7 +54,7 @@ class MainWindow(QtGui.QMainWindow):
             self.checkbox_rotation_1.setChecked(True)
 
     def filedialogout(self):
-        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.HomeLocation), 'Java (*.java)')
+        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(QtGui.QDesktopServices.DesktopLocation), 'Java (*.java)')
         if file[0] != '':
             self.lineedit_File_out_Path.setText(file[0])
 
@@ -64,10 +64,12 @@ class MainWindow(QtGui.QMainWindow):
         self.button_add_block.clicked.connect(self.add_to_list)
         self.button_remove_block.clicked.connect(self.remove_from_list)
         self.button_Start.clicked.connect(self.convertchecker)
+        self.button_manage_cbs.clicked.connect(self.open_manage_cbs)
         self.checkbox_rotation_1.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_2.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_3.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_4.stateChanged.connect(self.activate_checkbox_1)
+        self.lineedit_File_out_Path.editingFinished.connect(self.enable_options)
 
     def done(self):
         QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
@@ -84,6 +86,16 @@ class MainWindow(QtGui.QMainWindow):
         if self.list_Generate_on.currentItem() is not None:
             self.generate_on.remove(self.list_Generate_on.currentItem().text())
         self.list_Generate_on.takeItem(self.list_Generate_on.currentRow())
+
+    def enable_options(self):
+        if self.lineedit_File_out_Path.text() == 'options':
+            print('Options enabled')
+            self.options = True
+            self.lineedit_File_out_Path.setText('')
+
+    def open_manage_cbs(self):
+        dialog = dialog_custom_Block_manage(self)
+        dialog.exec_()
 
     def Tag_Number(self, number_size):
         skip = int.from_bytes(file_in.read(2), 'big')
@@ -125,7 +137,6 @@ class MainWindow(QtGui.QMainWindow):
         c = 1 #counts the total number of "setblock" methodes
         rotations = [] #list contains checked rotations
         rotationscount = 0 #counts the total items in rotations[]
-        options = False
         custom_block = '' #name of the custom block (moded) handled last
         custom_blocks = [] #contains all the custom block names assigned
         custom_blocks_id = [] #All the custom ids. Index matching names in custom_blocks list
@@ -135,12 +146,11 @@ class MainWindow(QtGui.QMainWindow):
         File_out_rew = [] #If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
         index_imports = 0 #index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
 
-        #trys to loade options file
+        #trys to load options file
         try:
             options_file = open('options')
-            options_in = options_file.readline()
-            if options_in == 'True' or options_in == 'true':
-                options = True
+            ignore = pickle.load(options_file)
+            options = pickle.load(options_file)
             options_file.close()
         except:
             pass
@@ -267,13 +277,13 @@ class MainWindow(QtGui.QMainWindow):
             elif '\\' in File_out_name:
                 classname = self.lineedit_File_out_Path.text().split('\\')
             else:
-                classname.append(file_out_name)
+                classname = [File_out_name]
 
             #print('Writing file')
             file_out.write\
                 (
                 '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"\n' +\
-                '\npackage ' + self.lineedit_Package.text() +\
+                '\npackage ' + self.combobox_Package.currentText() +\
                 ';\n\nimport java.util.Random;\n' +\
                 '\nimport net.minecraft.block.Block;\n' +\
                 'import net.minecraft.block.material.Material;\n' +\
@@ -334,7 +344,7 @@ class MainWindow(QtGui.QMainWindow):
             file_out.write('       return true;\n\n	}\n\n')
 
             #checks for advanced options
-            if options == True:
+            if self.options == True:
 
                 #same as obove only that this one is alredy called with a certain rotation disabeld by default
                 file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n') 
@@ -562,6 +572,7 @@ class MainWindow(QtGui.QMainWindow):
 
             #print('Done! ;)')
             self.done()
+            save_package(self)
             if new_custom_block == True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id)
                 dialog.exec_()

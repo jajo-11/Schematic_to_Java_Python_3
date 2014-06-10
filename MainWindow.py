@@ -9,10 +9,9 @@ def components(self):
     self.lineedit_File_out_Path = QtGui.QLineEdit()
     self.button_File_out = QtGui.QPushButton(self.tr('Browse...'))
     self.label_Package = QtGui.QLabel(self.tr('Package:'))
-    self.lineedit_Package = QtGui.QLineEdit()
+    self.combobox_Package = QtGui.QComboBox()
     self.label_Genetate_on = QtGui.QLabel(self.tr('Can generate on:'))
     self.combobox_Generate_on = QtGui.QComboBox()
-    self.combobox_Generate_on.setEditable(True)
     self.button_add_block = QtGui.QPushButton(self.tr('+'))
     self.button_remove_block = QtGui.QPushButton(self.tr('-'))
     self.list_Generate_on = QtGui.QListWidget()
@@ -23,6 +22,8 @@ def components(self):
     self.label_offset = QtGui.QLabel(self.tr('Height offset'))
     self.spinbox_offset = QtGui.QSpinBox()
     self.checkbox_Generate_Air = QtGui.QCheckBox(self.tr('Do not generate Air'))
+    self.button_manage_cbs = QtGui.QPushButton(self.tr('Custom Block Sets'))
+    self.button_manage_cl = QtGui.QPushButton(self.tr('Chest Loot'))
 
     self.group_rotation = QtGui.QGroupBox(self.tr('Rotaton'))
     self.checkbox_rotation_1 = QtGui.QCheckBox(self.tr('Default Rotation'))
@@ -40,6 +41,8 @@ def layout(self):
     layoutgroupoptions.addWidget(self.combobox_check_points, 2, 0, 1, 2)
     layoutgroupoptions.addWidget(self.label_offset, 3, 0, 1, 1)
     layoutgroupoptions.addWidget(self.spinbox_offset, 3, 1, 1, 1)
+    layoutgroupoptions.addWidget(self.button_manage_cbs, 4, 0, 1, 1)
+    layoutgroupoptions.addWidget(self.button_manage_cl, 4, 1, 1, 1)
 
     self.group_options.setLayout(layoutgroupoptions)
 
@@ -61,7 +64,7 @@ def layout(self):
     layoutZentral.addWidget(self.lineedit_File_out_Path, 3, 0, 1, 5)
     layoutZentral.addWidget(self.button_File_out, 3, 5, 1, 1)
     layoutZentral.addWidget(self.label_Package, 4, 0, 1, 1)
-    layoutZentral.addWidget(self.lineedit_Package, 5, 0, 1, 5)
+    layoutZentral.addWidget(self.combobox_Package, 5, 0, 1, 5)
     layoutZentral.addWidget(self.label_Genetate_on, 6, 0, 1, 1)
     layoutZentral.addWidget(self.combobox_Generate_on, 7, 0, 1, 4)
     layoutZentral.addWidget(self.button_add_block, 7, 4, 1, 1)
@@ -79,7 +82,7 @@ def tooltipsinit(self):
     self.button_File_in.setToolTip(self.tr('Opens a window where you can select a .schematic file.'))
     self.lineedit_File_out_Path.setToolTip(self.tr('Enter the path where the .java file should be outputted to or press \"Browse...\" to select a destination.\nNotice that the class name depends on the name of the output file.'))
     self.button_File_out.setToolTip(self.tr('Opens a window where you can select a destination for the outputed .java file.'))
-    self.lineedit_Package.setToolTip(self.tr('Enter the package name where your .java file will be in your mod.\nUsually looks like yourname.modname.'))
+    self.combobox_Package.setToolTip(self.tr('Enter the package name where your .java file will be in your mod.\nUsually looks like yourname.modname.\nPackages used before will appear here.'))
     self.checkbox_Generate_Air.setToolTip(self.tr('When enabled all the air blocks in the structure will be ignored.'))
     self.combobox_Generate_on.setToolTip(self.tr('Select or enter blocks on which the structure can generate.\nPress \"+\" to add your block to the list below.\nNotice that only blocks in the list will be added to the valid spawn blocks.'))
     self.button_add_block.setToolTip(self.tr('Adds the current block from the box on the left to the list below.'))
@@ -87,6 +90,8 @@ def tooltipsinit(self):
     self.list_Generate_on.setToolTip(self.tr('List of blocks considered as valid spawn blocks.'))
     self.combobox_check_points.setToolTip(self.tr('Sets where the function will look for the blocks selected above.\nCorners is recommended.'))
     self.spinbox_offset.setToolTip(self.tr('Set a height offset for your structure to make it fly or sink into the ground'))
+    self.button_manage_cbs.setToolTip(self.tr('Opens a window where you can manage your custom block sets.'))
+    self.button_manage_cl.setToolTip(self.tr('Opens a window where you can manage your random chest loot.'))
     self.checkbox_rotation_1.setToolTip(self.tr('If checked the Structure will be spawn unrotated.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.checkbox_rotation_2.setToolTip(self.tr('If checked the Structure will be spawn rotated by 90 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.checkbox_rotation_3.setToolTip(self.tr('If checked the Structure will be spawn rotated by 180 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
@@ -95,13 +100,35 @@ def tooltipsinit(self):
     self.setToolTip(self.tr('Schematic to Java Structure by jajo_11 inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"'))
 
 def preinit(self):
-    self.lineedit_Package.setPlaceholderText('yourname.modname')
+    self.combobox_Generate_on.setEditable(True)
+    self.combobox_Package.setEditable(True)
+    if os.path.isfile('options'):
+        packages_file = open('options', 'rb')
+        packages = pickle.load(packages_file)
+        packages_file.close()
+        self.combobox_Package.addItems(packages)
+    else:
+        packages_file = open('options', 'wb')
+        packages = []
+        pickle.dump(packages, packages_file)
+        packages_file.close()
+    self.combobox_Package.addItem('yourname.modname')
     self.spinbox_offset.setRange( -255, 255)
     self.combobox_check_points.addItems(['Corners', 'Center', 'Everywhere'])
-    self.combobox_Generate_on.addItems([u'Blocks.air', u'Blocks.stone', u'Blocks.grass', u'Blocks.dirt', u'Blocks.cobblestone', u'Blocks.planks', u'Blocks.sapling', u'Blocks.bedrock', u'Blocks.flowing_water', u'Blocks.water', u'Blocks.flowing_lava', u'Blocks.lava', u'Blocks.sand', u'Blocks.gravel', u'Blocks.gold_ore', u'Blocks.iron_ore', u'Blocks.coal_ore', u'Blocks.log', u'Blocks.leaves', u'Blocks.sponge', u'Blocks.glass', u'Blocks.lapis_ore', u'Blocks.lapis_block', u'Blocks.dispenser', u'Blocks.sandstone', u'Blocks.note', u'Blocks.bed', u'Blocks.golden_rail', u'Blocks.detector_rail', u'Blocks.sticky_piston', u'Blocks.web', u'Blocks.tallgrass', u'Blocks.deadbush', u'Blocks.piston', u'Blocks.piston_head', u'Blocks.wool', u'Blocks.piston_extension', u'Blocks.yellow_flower', u'Blocks.red_flower', u'Blocks.brown_mushroom', u'Blocks.red_mushroom', u'Blocks.gold_block', u'Blocks.iron_block', u'Blocks.double_stone_slab', u'Blocks.stone_slab', u'Blocks.brick_block', u'Blocks.tnt', u'Blocks.bookshelf', u'Blocks.mossy_cobblestone', u'Blocks.obsidian', u'Blocks.torch', u'Blocks.fire', u'Blocks.mob_spawner', u'Blocks.oak_stairs', u'Blocks.chest', u'Blocks.redstone_wire', u'Blocks.diamond_ore', u'Blocks.diamond_block', u'Blocks.crafting_table', u'Blocks.wheat', u'Blocks.farmland', u'Blocks.furnace', u'Blocks.lit_furnace', u'Blocks.standing_sign', u'Blocks.wooden_door', u'Blocks.ladder', u'Blocks.rail', u'Blocks.stone_stairs', u'Blocks.wall_sign', u'Blocks.lever', u'Blocks.stone_pressure_plate', u'Blocks.iron_door', u'Blocks.wooden_pressure_plate', u'Blocks.redstone_ore', u'Blocks.lit_redstone_ore', u'Blocks.unlit_redstone_torch', u'Blocks.redstone_torch', u'Blocks.stone_button', u'Blocks.snow_layer', u'Blocks.ice', u'Blocks.snow', u'Blocks.cactus', u'Blocks.clay', u'Blocks.reeds', u'Blocks.jukebox', u'Blocks.fence', u'Blocks.pumpkin', u'Blocks.netherrack', u'Blocks.soul_sand', u'Blocks.glowstone', u'Blocks.portal', u'Blocks.lit_pumpkin', u'Blocks.cake', u'Blocks.unpowered_repeater', u'Blocks.powered_repeater', u'Blocks.stained_glass', u'Blocks.trapdoor', u'Blocks.monster_egg', u'Blocks.stonebrick', u'Blocks.brown_mushroom_block', u'Blocks.red_mushroom_block', u'Blocks.iron_bars', u'Blocks.glass_pane', u'Blocks.melon_block', u'Blocks.pumpkin_stem', u'Blocks.melon_stem', u'Blocks.vine', u'Blocks.fence_gate', u'Blocks.brick_stairs', u'Blocks.stone_brick_stairs', u'Blocks.Myceliummycelium', u'Blocks.waterlily', u'Blocks.nether_brick', u'Blocks.nether_brick_fence', u'Blocks.nether_brick_stairs', u'Blocks.nether_wart', u'Blocks.enchanting_table', u'Blocks.brewing_stand', u'Blocks.cauldron', u'Blocks.end_portal', u'Blocks.end_portal_frame', u'Blocks.end_stone', u'Blocks.dragon_egg', u'Blocks.redstone_lamp', u'Blocks.lit_redstone_lamp', u'Blocks.double_wooden_slab', u'Blocks.wooden_slab', u'Blocks.cocoa', u'Blocks.sandstone_stairs', u'Blocks.emerald_ore', u'Blocks.ender_chest', u'Blocks.tripwire_hook', u'Blocks.tripwire', u'Blocks.emerald_block', u'Blocks.spruce_stairs', u'Blocks.birch_stairs', u'Blocks.jungle_stairs', u'Blocks.command_block', u'Blocks.beacon', u'Blocks.cobblestone_wall', u'Blocks.flower_pot', u'Blocks.carrots', u'Blocks.potatoes', u'Blocks.wooden_button', u'Blocks.skull', u'Blocks.anvil', u'Blocks.trapped_chest', u'Blocks.light_weighted_pressure_plate', u'Blocks.heavy_weighted_pressure_plate', u'Blocks.unpowered_comparator', u'Blocks.powered_comparator', u'Blocks.daylight_detector', u'Blocks.redstone_block', u'Blocks.quartz_ore', u'Blocks.hopper', u'Blocks.quartz_block', u'Blocks.quartz_stairs', u'Blocks.activator_rail', u'Blocks.dropper', u'Blocks.stained_hardened_clay', u'Blocks.stained_glass', u'Blocks.log2', u'Blocks.acacia_stairs', u'Blocks.dark_oak_stairs', u'Blocks.slime_block', u'Blocks.barrier', u'Blocks.iron_trapdoor', u'Blocks.hay_block', u'Blocks.carpet', u'Blocks.hardened_clay', u'Blocks.coal_block', u'Blocks.packed_ice', u'Blocks.double_plant'])
+    self.combobox_Generate_on.addItems(['Blocks.air', 'Blocks.stone', 'Blocks.grass', 'Blocks.dirt', 'Blocks.cobblestone', 'Blocks.planks', 'Blocks.sapling', 'Blocks.bedrock', 'Blocks.flowing_water', 'Blocks.water', 'Blocks.flowing_lava', 'Blocks.lava', 'Blocks.sand', 'Blocks.gravel', 'Blocks.gold_ore', 'Blocks.iron_ore', 'Blocks.coal_ore', 'Blocks.log', 'Blocks.leaves', 'Blocks.sponge', 'Blocks.glass', 'Blocks.lapis_ore', 'Blocks.lapis_block', 'Blocks.dispenser', 'Blocks.sandstone', 'Blocks.note', 'Blocks.bed', 'Blocks.golden_rail', 'Blocks.detector_rail', 'Blocks.sticky_piston', 'Blocks.web', 'Blocks.tallgrass', 'Blocks.deadbush', 'Blocks.piston', 'Blocks.piston_head', 'Blocks.wool', 'Blocks.piston_extension', 'Blocks.yellow_flower', 'Blocks.red_flower', 'Blocks.brown_mushroom', 'Blocks.red_mushroom', 'Blocks.gold_block', 'Blocks.iron_block', 'Blocks.double_stone_slab', 'Blocks.stone_slab', 'Blocks.brick_block', 'Blocks.tnt', 'Blocks.bookshelf', 'Blocks.mossy_cobblestone', 'Blocks.obsidian', 'Blocks.torch', 'Blocks.fire', 'Blocks.mob_spawner', 'Blocks.oak_stairs', 'Blocks.chest', 'Blocks.redstone_wire', 'Blocks.diamond_ore', 'Blocks.diamond_block', 'Blocks.crafting_table', 'Blocks.wheat', 'Blocks.farmland', 'Blocks.furnace', 'Blocks.lit_furnace', 'Blocks.standing_sign', 'Blocks.wooden_door', 'Blocks.ladder', 'Blocks.rail', 'Blocks.stone_stairs', 'Blocks.wall_sign', 'Blocks.lever', 'Blocks.stone_pressure_plate', 'Blocks.iron_door', 'Blocks.wooden_pressure_plate', 'Blocks.redstone_ore', 'Blocks.lit_redstone_ore', 'Blocks.unlit_redstone_torch', 'Blocks.redstone_torch', 'Blocks.stone_button', 'Blocks.snow_layer', 'Blocks.ice', 'Blocks.snow', 'Blocks.cactus', 'Blocks.clay', 'Blocks.reeds', 'Blocks.jukebox', 'Blocks.fence', 'Blocks.pumpkin', 'Blocks.netherrack', 'Blocks.soul_sand', 'Blocks.glowstone', 'Blocks.portal', 'Blocks.lit_pumpkin', 'Blocks.cake', 'Blocks.unpowered_repeater', 'Blocks.powered_repeater', 'Blocks.stained_glass', 'Blocks.trapdoor', 'Blocks.monster_egg', 'Blocks.stonebrick', 'Blocks.brown_mushroom_block', 'Blocks.red_mushroom_block', 'Blocks.iron_bars', 'Blocks.glass_pane', 'Blocks.melon_block', 'Blocks.pumpkin_stem', 'Blocks.melon_stem', 'Blocks.vine', 'Blocks.fence_gate', 'Blocks.brick_stairs', 'Blocks.stone_brick_stairs', 'Blocks.mycelium', 'Blocks.waterlily', 'Blocks.nether_brick', 'Blocks.nether_brick_fence', 'Blocks.nether_brick_stairs', 'Blocks.nether_wart', 'Blocks.enchanting_table', 'Blocks.brewing_stand', 'Blocks.cauldron', 'Blocks.end_portal', 'Blocks.end_portal_frame', 'Blocks.end_stone', 'Blocks.dragon_egg', 'Blocks.redstone_lamp', 'Blocks.lit_redstone_lamp', 'Blocks.double_wooden_slab', 'Blocks.wooden_slab', 'Blocks.cocoa', 'Blocks.sandstone_stairs', 'Blocks.emerald_ore', 'Blocks.ender_chest', 'Blocks.tripwire_hook', 'Blocks.tripwire', 'Blocks.emerald_block', 'Blocks.spruce_stairs', 'Blocks.birch_stairs', 'Blocks.jungle_stairs', 'Blocks.command_block', 'Blocks.beacon', 'Blocks.cobblestone_wall', 'Blocks.flower_pot', 'Blocks.carrots', 'Blocks.potatoes', 'Blocks.wooden_button', 'Blocks.skull', 'Blocks.anvil', 'Blocks.trapped_chest', 'Blocks.light_weighted_pressure_plate', 'Blocks.heavy_weighted_pressure_plate', 'Blocks.unpowered_comparator', 'Blocks.powered_comparator', 'Blocks.daylight_detector', 'Blocks.redstone_block', 'Blocks.quartz_ore', 'Blocks.hopper', 'Blocks.quartz_block', 'Blocks.quartz_stairs', 'Blocks.activator_rail', 'Blocks.dropper', 'Blocks.stained_hardened_clay', 'Blocks.stained_glass', 'Blocks.log2', 'Blocks.acacia_stairs', 'Blocks.dark_oak_stairs', 'Blocks.slime_block', 'Blocks.barrier', 'Blocks.iron_trapdoor', 'Blocks.hay_block', 'Blocks.carpet', 'Blocks.hardened_clay', 'Blocks.coal_block', 'Blocks.packed_ice', 'Blocks.double_plant'])
     self.combobox_Generate_on.setCurrentIndex(self.combobox_Generate_on.findText('Blocks.grass'))
     self.checkbox_rotation_1.setDisabled(True)
     self.checkbox_rotation_1.setChecked(True)
+
+def save_package(self):
+    packages_file = open('options', 'rb')
+    packages = pickle.load(packages_file)
+    packages_file.close()
+    packages_file = open('options', 'wb')
+    if self.combobox_Package.currentText() not in packages and self.combobox_Package.currentText() != 'yourname.modname':
+        packages.append(self.combobox_Package.currentText())
+        pickle.dump(packages, packages_file)
+    packages_file.close()
 
 class dialog_custom_Block(QtGui.QDialog):
     def __init__(self, parent, x, y, z, id):
@@ -183,7 +210,7 @@ class dialog_custom_Block_save(QtGui.QDialog):
         self.button_save.clicked.connect(self.filedialog_save)
 
     def filedialog_save(self):
-        file = QtGui.QFileDialog.getSaveFileName(self, u"Save Custom Block Set", os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        file = QtGui.QFileDialog.getSaveFileName(self, 'Save Custom Block Set', os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
         if file[0] != '':
             save_file = open(file[0], 'wb')
             pickle.dump(self.names, save_file)
@@ -192,7 +219,7 @@ class dialog_custom_Block_save(QtGui.QDialog):
         self.accept()
 
     def filedialog_save_add(self):
-        file = QtGui.QFileDialog.getOpenFileName(self, u"Add to Custom Block Set", os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set', os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
         if file[0] != '':
             save_file = open(file[0], 'rb')
             names_saved = []
@@ -208,7 +235,7 @@ class dialog_custom_Block_save(QtGui.QDialog):
                     overwrite_Dialog = QtGui.QMessageBox()
                     overwrite_Dialog.setWindowTitle(self.tr('Duplicate ids'))
                     overwrite_Dialog.setText(self.tr('The Block \"' + self.names[self.ids.index(entry)] + '\" alredy exists as \"'  + names_saved[ids_saved.index(entry)] + '\"'))
-                    overwrite_Dialog.setInformativeText(self.tr('Do you want to override it?'))
+                    overwrite_Dialog.setInformativeText(self.tr('Do you want to overwrite it?'))
                     overwrite_Dialog.setStandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.NoAll | QtGui.QMessageBox.YesAll | QtGui.QMessageBox.Yes)
                     overwrite_Dialog.setDefaultButton(QtGui.QMessageBox.Yes)
                     overwrite_Dialog.setEscapeButton(QtGui.QMessageBox.No)
@@ -230,3 +257,57 @@ class dialog_custom_Block_save(QtGui.QDialog):
             pickle.dump(ids_saved, save_file)
             save_file.close()
         self.accept()
+
+class dialog_custom_Block_manage(QtGui.QDialog):
+    def __init__(self, parent):
+        super(dialog_custom_Block_manage, self).__init__(parent)
+        self.createComponents()
+        self.createLayout()
+        self.tooltips()
+        self.createConnects()
+        self.setWindowTitle(self.tr('Manage Coustom Block Set'))
+
+    def createComponents(self):
+        self.label = QtGui.QLabel(self.tr('Select and/or edit a custom block set'))
+        self.combobox_sets = QtGui.QComboBox()
+        self.button_add = QtGui.QPushButton(self.tr('Open Set'))
+        self.list_blocks = QtGui.QListWidget()
+        self.button_new = QtGui.QPushButton(self.tr('New'))
+        self.button_edit = QtGui.QPushButton(self.tr('Edit'))
+        self.button_remove = QtGui.QPushButton(self.tr('Remove'))
+        self.button_cancel = QtGui.QPushButton(self.tr('Cancel'))
+        self.button_accept = QtGui.QPushButton(self.tr('Accept'))
+
+    def createLayout(self):
+        layoutDialog = QtGui.QVBoxLayout()
+        layoutDialog.addWidget(self.label)
+
+        layoutDialog2 = QtGui.QHBoxLayout()
+        layoutDialog2.addWidget(self.combobox_sets)
+        layoutDialog2.addWidget(self.button_add)
+        layoutDialog.addLayout(layoutDialog2)
+
+        layoutDialog.addWidget(self.list_blocks)
+
+        layoutDialog3 = QtGui.QHBoxLayout()
+        layoutDialog3.addWidget(self.button_new)
+        layoutDialog3.addWidget(self.button_edit)
+        layoutDialog3.addWidget(self.button_remove)
+        layoutDialog.addLayout(layoutDialog3)
+
+        layoutDialog4 = QtGui.QHBoxLayout()
+        layoutDialog4.addWidget(self.button_cancel)
+        layoutDialog4.addWidget(self.button_accept)
+        layoutDialog.addLayout(layoutDialog4)
+
+        self.setLayout(layoutDialog)
+
+    def tooltips(self):
+        self.combobox_sets.setToolTip(self.tr('Select a custom block set here.'))
+        self.button_add.setToolTip(self.tr('Open a custom block set from another location.'))
+        self.button_new.setToolTip(self.tr('Add a new custom block to the selected set.'))
+        self.button_edit.setToolTip(self.tr('Edit the selected custom block.'))
+        self.button_remove.setToolTip(self.tr('Remove the selected custom block.'))
+
+    def createConnects(self):
+        self.button_cancel.clicked.connect(self.reject)
