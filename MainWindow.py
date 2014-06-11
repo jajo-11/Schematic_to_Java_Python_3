@@ -102,7 +102,7 @@ def tooltipsinit(self):
 def preinit(self):
     self.combobox_Generate_on.setEditable(True)
     self.combobox_Package.setEditable(True)
-    if os.path.isfile('options'):
+    if os.path.isfile('options') and os.path.getsize('options') > 0:
         packages_file = open('options', 'rb')
         packages = pickle.load(packages_file)
         packages_file.close()
@@ -219,7 +219,9 @@ class dialog_custom_Block_save(QtGui.QDialog):
         self.accept()
 
     def filedialog_save_add(self):
-        file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set', os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        if not os.path.isdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
+            os.mkdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets')
+        file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set', os.path.dirname(os.path.realpath(__file__)) + '/customblocksets', 'Custom Block Set (*.cbs)')
         if file[0] != '':
             save_file = open(file[0], 'rb')
             names_saved = []
@@ -264,8 +266,11 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.createComponents()
         self.createLayout()
         self.tooltips()
+        self.preinit()
         self.createConnects()
         self.setWindowTitle(self.tr('Manage Coustom Block Set'))
+        self.current_names = []
+        self.current_ids = []
 
     def createComponents(self):
         self.label = QtGui.QLabel(self.tr('Select and/or edit a custom block set'))
@@ -305,9 +310,23 @@ class dialog_custom_Block_manage(QtGui.QDialog):
     def tooltips(self):
         self.combobox_sets.setToolTip(self.tr('Select a custom block set here.'))
         self.button_add.setToolTip(self.tr('Open a custom block set from another location.'))
-        self.button_new.setToolTip(self.tr('Add a new custom block to the selected set.'))
+        self.button_new.setToolTip(self.tr('Add a new custom block to the selected set.\nIf you don\'t have a selected set it will create an new one.'))
         self.button_edit.setToolTip(self.tr('Edit the selected custom block.'))
         self.button_remove.setToolTip(self.tr('Remove the selected custom block.'))
 
+    def preinit(self):
+        if not os.path.isdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
+            os.mkdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets')
+        for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
+            if file.endswith('.cbs'):
+                self.combobox_sets.addItem(os.path.splitext(file)[0])
+
     def createConnects(self):
         self.button_cancel.clicked.connect(self.reject)
+        self.combobox_sets.currentIndexChanged.connect(self.list_blocks_in_list)
+
+    def list_blocks_in_list(self):
+        file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets' + self.list_blocks.currentItem + '.cbs', 'rb')
+        self.current_names = pickle.load(file)
+        self.current_ids = pickle.load(file)
+        file.close()

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import gzip, sys, pickle
+import gzip, sys, pickle, os
 from MainWindow import *
 from PySide import QtGui
 
@@ -290,7 +290,7 @@ class MainWindow(QtGui.QMainWindow):
                 'import net.minecraft.init.Blocks;\n' +\
                 'import net.minecraft.world.World;\n' +\
                 'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' +\
-                'public class ' + classname[-1].rstrip('.java') + ' extends WorldGenerator\n' +\
+                'public class ' + os.path.splitext(classname[-1])[0] + ' extends WorldGenerator\n' +\
                 '{\n	protected Block[] GetValidSpawnBlocks()\n' +\
                 '	{\n		return new Block[]\n' +\
                 '		{\n' \
