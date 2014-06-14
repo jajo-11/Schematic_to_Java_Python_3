@@ -177,10 +177,11 @@ class dialog_custom_Block(QtGui.QDialog):
         return self.lineedit_package.text()
 
 class dialog_custom_Block_save(QtGui.QDialog):
-    def __init__(self, parent, names, ids):
+    def __init__(self, parent, names, ids, packages):
         super(dialog_custom_Block_save, self).__init__(parent)
         self.names = names
         self.ids = ids
+        self.packages = packages
         self.createComponents()
         self.createLayout()
         self.createConnects()
@@ -210,11 +211,12 @@ class dialog_custom_Block_save(QtGui.QDialog):
         self.button_save.clicked.connect(self.filedialog_save)
 
     def filedialog_save(self):
-        file = QtGui.QFileDialog.getSaveFileName(self, 'Save Custom Block Set', os.path.dirname(os.path.realpath(__file__)) , 'Custom Block Set (*.cbs)')
+        file = QtGui.QFileDialog.getSaveFileName(self, 'Save Custom Block Set', os.path.dirname(os.path.realpath(__file__)) + '/customblocksets' , 'Custom Block Set (*.cbs)')
         if file[0] != '':
             save_file = open(file[0], 'wb')
             pickle.dump(self.names, save_file)
             pickle.dump(self.ids, save_file)
+            pickle.dump(self.packages, save_file)
             save_file.close()
         self.accept()
 
@@ -230,9 +232,11 @@ class dialog_custom_Block_save(QtGui.QDialog):
             all_no = False
             names_saved = pickle.load(save_file)
             ids_saved = pickle.load(save_file)
+            packages_saved = pickle.load(save_file)
             for entry in self.ids:
                 if entry in ids_saved and all_yes == True:
                     names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                    packages_saved[ids_saved.index(entry)] = self.packages[self.ids.index(entry)]
                 if entry in ids_saved and all_yes == False and all_no == False:
                     overwrite_Dialog = QtGui.QMessageBox()
                     overwrite_Dialog.setWindowTitle(self.tr('Duplicate ids'))
@@ -245,18 +249,22 @@ class dialog_custom_Block_save(QtGui.QDialog):
                     ret = overwrite_Dialog.exec_()
                     if ret == QtGui.QMessageBox.Yes:
                         names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                        packages_saved[ids_saved.index(entry)] = self.packages[self.ids.index(entry)]
                     if ret == QtGui.QMessageBox.YesAll:
                         all_yes = True
                         names_saved[ids_saved.index(entry)] = self.names[self.ids.index(entry)]
+                        packages_saved[ids_saved.index(entry)] = self.packages[self.ids.index(entry)]
                     if ret == QtGui.QMessageBox.NoAll:
                         all_yes = True
                 else:
                     ids_saved.append(entry)
                     names_saved.append(self.names[self.ids.index(entry)])
+                    packages_saved.append(self.packages[self.ids.index(entry)])
             save_file.close()
             save_file = open(file[0], 'wb')
             pickle.dump(names_saved, save_file)
             pickle.dump(ids_saved, save_file)
+            pickle.dump(packages_saved, save_file)
             save_file.close()
         self.accept()
 
@@ -271,15 +279,13 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.setWindowTitle(self.tr('Manage Coustom Block Set'))
         self.current_names = []
         self.current_ids = []
+        self.current_packages = []
 
     def createComponents(self):
         self.label = QtGui.QLabel(self.tr('Select and/or edit a custom block set'))
         self.combobox_sets = QtGui.QComboBox()
         self.button_add = QtGui.QPushButton(self.tr('Open Set'))
-        self.list_blocks = QtGui.QListWidget()
-        self.button_new = QtGui.QPushButton(self.tr('New'))
-        self.button_edit = QtGui.QPushButton(self.tr('Edit'))
-        self.button_remove = QtGui.QPushButton(self.tr('Remove'))
+        self.table_blocks = QtGui.QTableWidget(1, 3, self)
         self.button_cancel = QtGui.QPushButton(self.tr('Cancel'))
         self.button_accept = QtGui.QPushButton(self.tr('Accept'))
 
@@ -292,27 +298,18 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         layoutDialog2.addWidget(self.button_add)
         layoutDialog.addLayout(layoutDialog2)
 
-        layoutDialog.addWidget(self.list_blocks)
+        layoutDialog.addWidget(self.table_blocks)
 
         layoutDialog3 = QtGui.QHBoxLayout()
-        layoutDialog3.addWidget(self.button_new)
-        layoutDialog3.addWidget(self.button_edit)
-        layoutDialog3.addWidget(self.button_remove)
+        layoutDialog3.addWidget(self.button_cancel)
+        layoutDialog3.addWidget(self.button_accept)
         layoutDialog.addLayout(layoutDialog3)
-
-        layoutDialog4 = QtGui.QHBoxLayout()
-        layoutDialog4.addWidget(self.button_cancel)
-        layoutDialog4.addWidget(self.button_accept)
-        layoutDialog.addLayout(layoutDialog4)
 
         self.setLayout(layoutDialog)
 
     def tooltips(self):
         self.combobox_sets.setToolTip(self.tr('Select a custom block set here.'))
         self.button_add.setToolTip(self.tr('Open a custom block set from another location.'))
-        self.button_new.setToolTip(self.tr('Add a new custom block to the selected set.\nIf you don\'t have a selected set it will create an new one.'))
-        self.button_edit.setToolTip(self.tr('Edit the selected custom block.'))
-        self.button_remove.setToolTip(self.tr('Remove the selected custom block.'))
 
     def preinit(self):
         if not os.path.isdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
@@ -320,13 +317,23 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
             if file.endswith('.cbs'):
                 self.combobox_sets.addItem(os.path.splitext(file)[0])
+        self.table_blocks.setHorizontalHeaderLabels(['Ids', 'Names', 'Package'])
+        self.table_blocks.verticalHeader().setVisible(False)
+        self.table_blocks.horizontalHeader().setStretchLastSection(True)
 
     def createConnects(self):
+        self.button_accept.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
-        self.combobox_sets.currentIndexChanged.connect(self.list_blocks_in_list)
+        self.combobox_sets.currentIndexChanged.connect(self.list_blocks_in_table)
 
-    def list_blocks_in_list(self):
-        file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets' + self.list_blocks.currentItem + '.cbs', 'rb')
+    def list_blocks_in_table(self):
+        file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.list_blocks.currentItem + '.cbs', 'rb')
         self.current_names = pickle.load(file)
         self.current_ids = pickle.load(file)
+        self.current_packages = pickle.load(file)
         file.close()
+
+    @property
+    def selected(self):
+        if self.combobox_sets.currentText():
+            return self.combobox_sets.currentText() + '.cbs'

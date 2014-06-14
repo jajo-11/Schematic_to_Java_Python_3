@@ -215,3 +215,11 @@ pip-log.txt
 .mr.developer.cfg
 options
 *.cbs
+.idea/.name
+.idea/Schematic_to_Java_Python_3.iml
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/scopes/scope_settings.xml
+.idea/workspace.xml
