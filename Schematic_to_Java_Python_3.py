@@ -186,7 +186,7 @@ class MainWindow(QtGui.QMainWindow):
         c = 1  # counts the total number of "setblock" methodes
         rotations = []  # list contains checked rotations
         rotationscount = 0  # counts the total items in rotations[]
-        custom_block = ''  # name of the custom block (moded) handled last
+        custom_block = ''  # name of the custom block (modded) handled last
         custom_blocks = []  # contains all the custom block names assigned
         custom_blocks_id = []  # All the custom ids. Index matching names in custom_blocks list
         new_custom_block = False  # is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
@@ -194,16 +194,18 @@ class MainWindow(QtGui.QMainWindow):
         package = ''  # stores last custom blocks package import
         File_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
         index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
-        additional_packages_sorted = []  # is the same as additional_packages but without duplicates
+        additional_packages_cbs = [] # all from the cbs loaded packages in this additional list to prevent unnecessary imports
+        additional_ids_cbs = [] # all from the cbs loaded ids in this additional list to prevent unnecessary imports
+        additional_blocks_cbs = [] # all from the cbs loaded names in this additional list to prevent unnecessary imports
 
         if self.cbs_file is not None:
             if self.cbs_file[0] == True:
                 file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.cbs_file[1], 'rb')
             else:
                 file = open(self.cbs_file[1])
-            custom_blocks = pickle.load(file)
-            custom_blocks_id = pickle.load(file)
-            additional_packages = pickle.load(file)
+            custom_blocks_cbs = pickle.load(file)
+            custom_blocks_id_cbs = pickle.load(file)
+            additional_packages_cbs = pickle.load(file)
             file.close()
 
         global file_in
@@ -579,6 +581,10 @@ class MainWindow(QtGui.QMainWindow):
 
                         if block_list[i] in custom_blocks_id:
                             custom_block = custom_blocks[custom_blocks_id.index(block_list[i])]
+                        elif block_list[i] in custom_blocks_id_cbs:
+                            custom_block = custom_blocks_cbs[custom_blocks_id_cbs.index(block_list[i])]
+                            if additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])] not in additional_packages:
+                                additional_packages.append(additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])])
                         else:
                             dialog = dialog_custom_Block(self, x, y, z, block_list[i])
                             dialog.exec_()
@@ -634,11 +640,10 @@ class MainWindow(QtGui.QMainWindow):
                 file_out = open(self.lineedit_File_out_Path.text(), 'w')
                 index_imports = File_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
                 i = 0  # just for counting lines
-                [additional_packages_sorted.append(item) for item in additional_packages if item not in additional_packages_sorted]
-                for Import in additional_packages_sorted:
+                for Import in additional_packages:
                     i += 1
                     File_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
-                File_out_rew.insert(index_imports + len(additional_packages_sorted), '\n')
+                File_out_rew.insert(index_imports + len(additional_packages), '\n')
                 file_out.seek(0)
                 file_out.writelines(File_out_rew)
 
