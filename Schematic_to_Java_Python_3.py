@@ -2,7 +2,6 @@
 
 import gzip
 import sys
-import os
 
 from MainWindow import *
 
@@ -25,14 +24,15 @@ class MainWindow(QtGui.QMainWindow):
         self.createConnects()
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
 
+    # noinspection PyCallByClass
     def convertchecker(self):
         if self.lineedit_File_in_Path.text() == '':
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No File Selected!'))
         elif self.lineedit_File_in_Path.text() == self.lineedit_File_out_Path.text():
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('In and Output are identical'))
         elif self.lineedit_File_out_Path.text() == '':
-            str = self.lineedit_File_in_Path.text().rstrip('schematic') + 'java'
-            self.lineedit_File_out_Path.setText(str)
+            file_out_name = self.lineedit_File_in_Path.text().rstrip('schematic') + 'java'
+            self.lineedit_File_out_Path.setText(file_out_name)
             if not self.generate_on:
                 QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No blocks to generate on set!'))
             self.convert()
@@ -44,6 +44,7 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.warning(self, self.tr('Error'),
                                       self.tr('Unexpected Error!\nPlease Contact the Devoloper (jajo_11)'))
 
+    # noinspection PyCallByClass
     def filedialogin(self):
         file = QtGui.QFileDialog.getOpenFileName(self, u"Open File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
@@ -193,9 +194,13 @@ class MainWindow(QtGui.QMainWindow):
         package = ''  # stores last custom blocks package import
         File_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
         index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
+        additional_packages_sorted = []  # is the same as additional_packages but without duplicates
 
         if self.cbs_file is not None:
-            file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.cbs_file, 'rb')
+            if self.cbs_file[0] == True:
+                file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.cbs_file[1], 'rb')
+            else:
+                file = open(self.cbs_file[1])
             custom_blocks = pickle.load(file)
             custom_blocks_id = pickle.load(file)
             additional_packages = pickle.load(file)
@@ -244,57 +249,57 @@ class MainWindow(QtGui.QMainWindow):
                 # TAG_Int
                 if tag == bytearray.fromhex('03'):
                     self.Tag_Number(4)
-                #TAG_Long
+                # TAG_Long
                 if tag == bytearray.fromhex('04'):
                     self.Tag_Number(8)
-                #TAG_Float
+                # TAG_Float
                 if tag == bytearray.fromhex('05'):
                     self.Tag_Number(4)
                 # TAG_Double
                 if tag == bytearray.fromhex('06'):
                     self.Tag_Number(8)
-                #TAG_Byte_Array
+                # TAG_Byte_Array
                 if tag == bytearray.fromhex('07'):
                     skip = int.from_bytes(file_in.read(2), 'big')
-                    #print 'skip = ' + str(skip)
+                    # print 'skip = ' + str(skip)
                     string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
                     array_legnth = int.from_bytes(file_in.read(4), 'big')
                     if string == 'Blocks':
                         block_list = bytearray(file_in.read(array_legnth))
-                        #print('Blocks')
+                        # print('Blocks')
                     elif string == 'Data':
                         meta_data_list = bytearray(file_in.read(array_legnth))
-                        #print('Data')
+                        # print('Data')
                     else:
                         byte_aray = file_in.read(array_legnth)
-                        #print('byte array: ' + string)
-                #TAG_String
+                        # print('byte array: ' + string)
+                # TAG_String
                 if tag == bytearray.fromhex('08'):
                     skip = int.from_bytes(file_in.read(2), 'big')
-                    #print 'skip = ' + str(skip)
+                    # print 'skip = ' + str(skip)
                     string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
                     string_length = int.from_bytes(file_in.read(2), 'big')
                     content = bytes.decode(file_in.read(string_length), 'utf-8', 'strict')
-                    #print = (string + ' = ' + content)
+                    # print = (string + ' = ' + content)
                     if 'Chest' in content:
                         Chest = True
-                #TAG_List
+                # TAG_List
                 if tag == bytearray.fromhex('09'):
                     list_depth += 1
                     skip = int.from_bytes(file_in.read(2), 'big')
-                    #print 'skip = ' + str(skip)
+                    # print 'skip = ' + str(skip)
                     string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
                     list_Tagid.insert(list_depth, file_in.read(1))
                     list_size.insert(list_depth, int.from_bytes(file_in.read(4), 'big'))
-                    #print('List: ' + string + ' | Tag Id: ' + str(int.from_bytes([list_depth], 'big')))
+                    # print('List: ' + string + ' | Tag Id: ' + str(int.from_bytes([list_depth], 'big')))
                     if tag_depth != 0:
                         litC_depth += 1
                         list_in_tag_Compound.insert(litC_depth, True)
-                #TAG_Compound
+                # TAG_Compound
                 if tag == bytearray.fromhex('0A'):
                     tag_depth += 1
-                    #print('Tag_Compound')
-                #TAG_Int_Array
+                    # print('Tag_Compound')
+                # TAG_Int_Array
                 if tag == bytearray.fromhex('0B'):
                     #print('array')
                     break
@@ -316,28 +321,26 @@ class MainWindow(QtGui.QMainWindow):
 
             # test for unix or windows directory seperators (/ vs. \) so the name can be splited from the path
             if '/' in File_out_name:
-                classname = self.lineedit_File_out_Path.text().split('/')
+                class_name = self.lineedit_File_out_Path.text().split('/')
             elif '\\' in File_out_name:
-                classname = self.lineedit_File_out_Path.text().split('\\')
+                class_name = self.lineedit_File_out_Path.text().split('\\')
             else:
-                classname = [File_out_name]
+                class_name = [File_out_name]
 
-            #print('Writing file')
-            file_out.write \
-                (
-                    '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"\n' + \
-                    '\npackage ' + self.combobox_Package.currentText() + \
-                    ';\n\nimport java.util.Random;\n' + \
-                    '\nimport net.minecraft.block.Block;\n' + \
-                    'import net.minecraft.block.material.Material;\n' + \
-                    'import net.minecraft.init.Blocks;\n' + \
-                    'import net.minecraft.world.World;\n' + \
-                    'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' + \
-                    'public class ' + os.path.splitext(classname[-1])[0] + ' extends WorldGenerator\n' + \
-                    '{\n	protected Block[] GetValidSpawnBlocks()\n' + \
-                    '	{\n		return new Block[]\n' + \
-                    '		{\n' \
-                    )
+            # print('Writing file')
+            file_out.write(
+                '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"\n' +
+                '\npackage ' + self.combobox_Package.currentText() +
+                ';\n\nimport java.util.Random;\n' +
+                '\nimport net.minecraft.block.Block;\n' +
+                'import net.minecraft.block.material.Material;\n' +
+                'import net.minecraft.init.Blocks;\n' +
+                'import net.minecraft.world.World;\n' +
+                'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' +
+                'public class ' + os.path.splitext(class_name[-1])[0] + ' extends WorldGenerator\n' +
+                '{\n	protected Block[] GetValidSpawnBlocks()\n' +
+                '	{\n		return new Block[]\n' +
+                '		{\n')
 
             for block in self.generate_on:
                 file_out.write('			' + block + ',\n')
@@ -381,16 +384,16 @@ class MainWindow(QtGui.QMainWindow):
                     'int i = rand.nextInt(' + str(rotationscount) + ');\n\n' \
                     )
 
-            #generates code for random decision of the rotation
+            # generates code for random decision of the rotation
             for i in range(0, rotationscount):
                 file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
                     i] + '(world, rand, x, y, z);\n		}\n\n')
             file_out.write('       return true;\n\n	}\n\n')
 
-            #checks for advanced options
+            # checks for advanced options
             if self.options == True:
 
-                #same as obove only that this one is alredy called with a certain rotation disabeld by default
+                # same as obove only that this one is alredy called with a certain rotation disabeld by default
                 file_out.write(
                     '	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n')
                 for i in range(0, rotationscount):
@@ -398,11 +401,11 @@ class MainWindow(QtGui.QMainWindow):
                         i] + '(world, rand, x, y, z);\n		}\n\n')
                 file_out.write('       return true;\n\n	}\n\n')
 
-                #creates funcion for geting the count of rotations disabeld by default
+                # creates funcion for geting the count of rotations disabeld by default
                 file_out.write(
                     '	public int getrotations()\n	{\n\n		return ' + str(rotationscount) + ';\n\n    }\n\n')
 
-            #generates the code witch checks fore valid spawn locations
+            # generates the code witch checks fore valid spawn locations
             for rotations in rotations:
 
                 if rotations == 'generate_r0' or rotations == 'generate_r2':
@@ -619,10 +622,10 @@ class MainWindow(QtGui.QMainWindow):
 
             file_out.write('\n}')
 
-            #writes additional imports for custom blocks
+            # writes additional imports for custom blocks
             if additional_packages:
 
-                #reading in file to rewrite it
+                # reading in file to rewrite it
                 file_out.close()
                 file_out = open(self.lineedit_File_out_Path.text(), 'r')
                 File_out_rew = file_out.readlines()
@@ -630,19 +633,20 @@ class MainWindow(QtGui.QMainWindow):
 
                 file_out = open(self.lineedit_File_out_Path.text(), 'w')
                 index_imports = File_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
-                i = 0  #just for counting lines
-                for Import in additional_packages:
+                i = 0  # just for counting lines
+                [additional_packages_sorted.append(item) for item in additional_packages if item not in additional_packages_sorted]
+                for Import in additional_packages_sorted:
                     i += 1
                     File_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
-                File_out_rew.insert(index_imports + len(additional_packages), '\n')
+                File_out_rew.insert(index_imports + len(additional_packages_sorted), '\n')
                 file_out.seek(0)
                 file_out.writelines(File_out_rew)
 
-            #print('Done! ;)')
+            # print('Done! ;)')
             self.done()
             save_package(self)
             if new_custom_block == True:
-                dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id)
+                dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
                 dialog.exec_()
         else:
 

@@ -271,21 +271,23 @@ class dialog_custom_Block_save(QtGui.QDialog):
 class dialog_custom_Block_manage(QtGui.QDialog):
     def __init__(self, parent):
         super(dialog_custom_Block_manage, self).__init__(parent)
+        self.current_names = []
+        self.current_ids = []
+        self.current_packages = []
+        self.customFile = ''
         self.createComponents()
         self.createLayout()
         self.tooltips()
         self.preinit()
+        self.list_blocks_in_table()
         self.createConnects()
         self.setWindowTitle(self.tr('Manage Coustom Block Set'))
-        self.current_names = []
-        self.current_ids = []
-        self.current_packages = []
 
     def createComponents(self):
         self.label = QtGui.QLabel(self.tr('Select and/or edit a custom block set'))
         self.combobox_sets = QtGui.QComboBox()
         self.button_add = QtGui.QPushButton(self.tr('Open Set'))
-        self.table_blocks = QtGui.QTableWidget(1, 3, self)
+        self.table_blocks = QtGui.QTableWidget(0, 3, self)
         self.button_cancel = QtGui.QPushButton(self.tr('Cancel'))
         self.button_accept = QtGui.QPushButton(self.tr('Accept'))
 
@@ -319,21 +321,48 @@ class dialog_custom_Block_manage(QtGui.QDialog):
                 self.combobox_sets.addItem(os.path.splitext(file)[0])
         self.table_blocks.setHorizontalHeaderLabels(['Ids', 'Names', 'Package'])
         self.table_blocks.verticalHeader().setVisible(False)
-        self.table_blocks.horizontalHeader().setStretchLastSection(True)
+        self.table_blocks.horizontalHeader().ResizeMode(QtGui.QHeaderView.ResizeToContents) # .setStretchLastSection(True)
+        self.table_blocks.setHorizontalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
 
     def createConnects(self):
         self.button_accept.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
         self.combobox_sets.currentIndexChanged.connect(self.list_blocks_in_table)
+        self.button_add.clicked.connect(self.add_cbs)
 
     def list_blocks_in_table(self):
-        file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.list_blocks.currentItem + '.cbs', 'rb')
+        if 'Custom File' == self.combobox_sets.currentText():
+            file = open(self.customFile)
+        else:
+            file = open(os.path.dirname(os.path.realpath(__file__)) +
+                        '/customblocksets/' + self.combobox_sets.currentText() + '.cbs', 'rb')
         self.current_names = pickle.load(file)
         self.current_ids = pickle.load(file)
         self.current_packages = pickle.load(file)
         file.close()
 
+        self.table_blocks.clearContents()
+
+        for thing in self.current_ids:
+            Qid = QtGui.QTableWidgetItem(str(thing))
+            Qname = QtGui.QTableWidgetItem(self.current_names[self.current_ids.index(thing)])
+            Qpackage = QtGui.QTableWidgetItem(self.current_packages[self.current_ids.index(thing)])
+            self.table_blocks.insertRow(self.table_blocks.rowCount())
+            self.table_blocks.setItem(self.current_ids.index(thing), 0, Qid)
+            self.table_blocks.setItem(self.current_ids.index(thing), 1, Qname)
+            self.table_blocks.setItem(self.current_ids.index(thing), 2, Qpackage)
+
+    def add_cbs(self):
+        file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set', os.path.dirname(os.path.realpath(__file__)), 'Custom Block Set (*.cbs)')
+        if file[0] != '':
+            self.combobox_sets.insertItem(1, 'Custom File')
+            self.combobox_sets.setCurrentIndex(1)
+            self.customFile = file[0]
+            self.list_blocks_in_table()
+
     @property
     def selected(self):
-        if self.combobox_sets.currentText():
-            return self.combobox_sets.currentText() + '.cbs'
+        if self.combobox_sets.currentText() and self.combobox_sets.currentText() != 'Custom File':
+            return [True, self.combobox_sets.currentText() + '.cbs'] # True means its in /customblocksets/
+        elif self.combobox_sets.currentText():
+            return [False, self.customFile] # False means its not in /customblocksets/
