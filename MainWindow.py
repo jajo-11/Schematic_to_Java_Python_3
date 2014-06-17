@@ -413,7 +413,7 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.current_packages = pickle.load(file)
         file.close()
 
-        self.table_blocks.clearContents()
+        self.table_blocks.setRowCount(0)
 
         for thing in self.current_ids:
             Qid = QtGui.QTableWidgetItem(str(thing))
@@ -436,6 +436,8 @@ class dialog_custom_Block_manage(QtGui.QDialog):
 
     def context_menu_table(self):
         menu = QtGui.QMenu()
+        menu.addAction('New cbs', self.new_cbs)
+        menu.addSeparator()
         menu.addAction('Add Row', self.add_row_to_list)
         menu.addAction('Delete Row', self.remove_row_from_list)
         menu.exec_(QtGui.QCursor.pos())
@@ -467,6 +469,17 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         pickle.dump(package, file)
         file.close()
         self.accept()
+
+    def new_cbs(self):
+        file = QtGui.QFileDialog.getSaveFileName(self, u"New Custom Block Set",
+                                                 os.path.dirname(os.path.realpath(__file__)) +
+                                                 '/customblocksets/', 'Custom Block Set (*.cbs)')
+        if file[0] != '':
+            if os.path.dirname(file[0]) == (os.path.dirname(os.path.realpath(__file__)) +
+                        '\\customblocksets'):
+                self.combobox_sets.insertItem(1, os.path.splitext(file[0])[0])
+                self.combobox_sets.setCurrentIndex(1)
+                self.list_blocks_in_table()
 
     @property
     def selected(self):
