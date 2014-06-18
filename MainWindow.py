@@ -404,10 +404,28 @@ class dialog_custom_Block_manage(QtGui.QDialog):
 
     def list_blocks_in_table(self):
         if 'Custom File' == self.combobox_sets.currentText():
-            file = open(self.customFile)
-        else:
-            file = open(os.path.dirname(os.path.realpath(__file__)) +
-                        '/customblocksets/' + self.combobox_sets.currentText() + '.cbs', 'rb')
+            if os.path.isfile(self.customFile):
+                file = open(self.customFile, 'rb')
+            else:
+                file = open(self.customFile, 'wb')
+                for i in range(0, 3):
+                    pickle.dump([], file)
+                file.close()
+                file = open(self.customFile, 'rb')
+        elif self.combobox_sets.currentText():
+            if os.path.isfile(os.path.dirname(os.path.realpath(__file__)) +
+                    '/customblocksets/' + self.combobox_sets.currentText() + '.cbs'):
+                file = open(os.path.dirname(os.path.realpath(__file__)) +
+                            '/customblocksets/' + self.combobox_sets.currentText() + '.cbs', 'rb')
+            else:
+                file = open(os.path.dirname(os.path.realpath(__file__)) +
+                            '/customblocksets/' + self.combobox_sets.currentText() + '.cbs', 'wb')
+                for i in range(0, 3):
+                    pickle.dump([], file)
+                file.close()
+                file = open(os.path.dirname(os.path.realpath(__file__)) +
+                            '/customblocksets/' + self.combobox_sets.currentText() + '.cbs', 'rb')
+
         self.current_names = pickle.load(file)
         self.current_ids = pickle.load(file)
         self.current_packages = pickle.load(file)
@@ -429,14 +447,15 @@ class dialog_custom_Block_manage(QtGui.QDialog):
                                                  os.path.dirname(os.path.realpath(__file__)),
                                                  'Custom Block Set (*.cbs)')
         if file[0] != '':
-            self.combobox_sets.insertItem(1, 'Custom File')
-            self.combobox_sets.setCurrentIndex(1)
+            self.combobox_sets.insertItem(0, 'Custom File')
+            self.combobox_sets.setCurrentIndex(0)
             self.customFile = file[0]
             self.list_blocks_in_table()
 
     def context_menu_table(self):
         menu = QtGui.QMenu()
         menu.addAction('New cbs', self.new_cbs)
+        menu.addAction('Delete cbs', self.delete_cbs)
         menu.addSeparator()
         menu.addAction('Add Row', self.add_row_to_list)
         menu.addAction('Delete Row', self.remove_row_from_list)
@@ -475,11 +494,31 @@ class dialog_custom_Block_manage(QtGui.QDialog):
                                                  os.path.dirname(os.path.realpath(__file__)) +
                                                  '/customblocksets/', 'Custom Block Set (*.cbs)')
         if file[0] != '':
-            if os.path.dirname(file[0]) == (os.path.dirname(os.path.realpath(__file__)) +
-                        '\\customblocksets'):
-                self.combobox_sets.insertItem(1, os.path.splitext(file[0])[0])
-                self.combobox_sets.setCurrentIndex(1)
+            if os.path.samefile(os.path.realpath(os.path.dirname(file[0])),
+                                os.path.dirname(os.path.realpath(__file__)) +
+                                        '\\customblocksets'):
+                self.combobox_sets.insertItem(0, os.path.splitext(os.path.basename(file[0]))[0])
+                self.combobox_sets.setCurrentIndex(0)
                 self.list_blocks_in_table()
+            else:
+                self.customFile = file[0]
+                self.combobox_sets.insertItem(0, 'Custom File')
+                self.combobox_sets.setCurrentIndex(0)
+                self.list_blocks_in_table()
+
+    def delete_cbs(self):
+        dialog = QtGui.QMessageBox.question(self, self.tr('Delete Custom Block Set?'),
+                                            self.tr('Do you rally want to delete \"' +
+                                                    self.combobox_sets.currentText() + '.cbs\"?'),
+                                            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        if dialog == QtGui.QMessageBox.Yes:
+            if self.combobox_sets.currentText() and self.combobox_sets.currentText() != 'Custom File':
+                os.remove(os.path.dirname(os.path.realpath(__file__)) +
+                          '\\customblocksets\\' + self.combobox_sets.currentText() + '.cbs')
+            elif self.combobox_sets.currentText():
+                os.remove(self.customFile)
+            self.combobox_sets.removeItem(self.combobox_sets.currentIndex())
+            self.combobox_sets.setCurrentIndex(0)
 
     @property
     def selected(self):

@@ -195,8 +195,8 @@ class MainWindow(QtGui.QMainWindow):
         File_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
         index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
         additional_packages_cbs = [] # all from the cbs loaded packages in this additional list to prevent unnecessary imports
-        additional_ids_cbs = [] # all from the cbs loaded ids in this additional list to prevent unnecessary imports
-        additional_blocks_cbs = [] # all from the cbs loaded names in this additional list to prevent unnecessary imports
+        custom_blocks_id_cbs = [] # all from the cbs loaded ids in this additional list to prevent unnecessary imports
+        custom_blocks_cbs = [] # all from the cbs loaded names in this additional list to prevent unnecessary imports
 
         if self.cbs_file is not None:
             if self.cbs_file[0] == True:
@@ -317,19 +317,11 @@ class MainWindow(QtGui.QMainWindow):
                         break
 
             size = self.height * self.length * self.width  # calculate block count
+
             # print(self.length)
             # print(self.width)
-            File_out_name = self.lineedit_File_out_Path.text()
-
-            # test for unix or windows directory seperators (/ vs. \) so the name can be splited from the path
-            if '/' in File_out_name:
-                class_name = self.lineedit_File_out_Path.text().split('/')
-            elif '\\' in File_out_name:
-                class_name = self.lineedit_File_out_Path.text().split('\\')
-            else:
-                class_name = [File_out_name]
-
             # print('Writing file')
+
             file_out.write(
                 '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"\n' +
                 '\npackage ' + self.combobox_Package.currentText() +
@@ -339,7 +331,8 @@ class MainWindow(QtGui.QMainWindow):
                 'import net.minecraft.init.Blocks;\n' +
                 'import net.minecraft.world.World;\n' +
                 'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' +
-                'public class ' + os.path.splitext(class_name[-1])[0] + ' extends WorldGenerator\n' +
+                'public class ' + os.path.splitext(os.path.basename(self.lineedit_File_out_Path.text()))[0] +
+                ' extends WorldGenerator\n' +
                 '{\n	protected Block[] GetValidSpawnBlocks()\n' +
                 '	{\n		return new Block[]\n' +
                 '		{\n')
