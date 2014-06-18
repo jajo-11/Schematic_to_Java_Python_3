@@ -434,7 +434,8 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.table_blocks.setRowCount(0)
 
         for thing in self.current_ids:
-            Qid = QtGui.QTableWidgetItem(str(thing))
+            Qid = QtGui.QTableWidgetItem()
+            Qid.setData(QtCore.Qt.DisplayRole, thing)
             Qname = QtGui.QTableWidgetItem(self.current_names[self.current_ids.index(thing)])
             Qpackage = QtGui.QTableWidgetItem(self.current_packages[self.current_ids.index(thing)])
             self.table_blocks.insertRow(self.table_blocks.rowCount())
@@ -473,7 +474,7 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         names = []
         package = []
         for i in range(0, self.table_blocks.rowCount()):
-            ids.append(int(self.table_blocks.item(i, 0).text()))
+            ids.append(self.table_blocks.item(i, 0).text())
             names.append(self.table_blocks.item(i, 1).text())
             package.append(self.table_blocks.item(i, 2).text())
         if self.combobox_sets.currentText() and self.combobox_sets.currentText() != 'Custom File':
