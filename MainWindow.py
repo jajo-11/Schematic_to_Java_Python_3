@@ -173,6 +173,7 @@ def preinit(self):
     self.combobox_Generate_on.setCurrentIndex(self.combobox_Generate_on.findText('Blocks.grass'))
     self.checkbox_rotation_1.setDisabled(True)
     self.checkbox_rotation_1.setChecked(True)
+    self.button_manage_cl.setDisabled(True)
 
 
 def save_package(self):
@@ -464,6 +465,9 @@ class dialog_custom_Block_manage(QtGui.QDialog):
 
     def add_row_to_list(self):
         self.table_blocks.insertRow(self.table_blocks.rowCount())
+        qintobj = QtGui.QTableWidgetItem()
+        qintobj.setData(QtCore.Qt.DisplayRole, 0)
+        self.table_blocks.setItem(self.table_blocks.rowCount() - 1, 0, qintobj)
 
     def remove_row_from_list(self):
         if self.table_blocks.currentRow() or self.table_blocks.currentRow() == 0:
