@@ -193,12 +193,13 @@ class MainWindow(QtGui.QMainWindow):
         new_custom_block = False  # is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
         additional_packages = []  # list stores all the additional imports for custom blocks
         package = ''  # stores last custom blocks package import
-        File_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
+        file_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
         index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
-        additional_packages_cbs = [] # all from the cbs loaded packages in this additional list to prevent unnecessary imports
-        custom_blocks_id_cbs = [] # all from the cbs loaded ids in this additional list to prevent unnecessary imports
-        custom_blocks_cbs = [] # all from the cbs loaded names in this additional list to prevent unnecessary imports
-        blocks_to_rotate = [50, 75, 76]
+        additional_packages_cbs = []  # all from the cbs loaded packages in this additional list to prevent unnecessary imports
+        custom_blocks_id_cbs = []  # all from the cbs loaded ids in this additional list to prevent unnecessary imports
+        custom_blocks_cbs = []  # all from the cbs loaded names in this additional list to prevent unnecessary imports
+        blocks_to_rotate = [50, 75, 76, 17]  # blocks witch need to be rotated by metadata
+        meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         if self.cbs_file is not None:
             if self.cbs_file[0] == True:
@@ -305,17 +306,17 @@ class MainWindow(QtGui.QMainWindow):
                     # print('Tag_Compound')
                 # TAG_Int_Array
                 if tag == bytearray.fromhex('0B'):
-                    #print('array')
+                    # print('array')
                     break
-                #TAG_End
+                # TAG_End
                 if tag == bytearray.fromhex('00'):
                     if tag_depth != 0:
                         tag_depth -= 1
-                        #print('Tag_Compound End')
+                        # print('Tag_Compound End')
                         if list_Tagid[list_depth] == bytearray.fromhex('0A'):
                             tag = list_Tagid[list_depth]
                     else:
-                        #print('End of File')
+                        # print('End of File')
                         break
 
             size = self.height * self.length * self.width  # calculate block count
@@ -572,11 +573,11 @@ class MainWindow(QtGui.QMainWindow):
 
                     # rotates blocks via metadata if necessary
                     if block_list[i] in blocks_to_rotate:
-                        meta_data_list[i] = rotate_meta_data(rotations, block_name[block_id.index(block_list[i])],
+                        meta_data_rotated = rotate_meta_data(rotations, block_name[block_id.index(block_list[i])],
                                                              meta_data_list[i])
 
                     # skips air blocks if enabled and prevents the block from being counted
-                    if block_list[i] == 0 and do_not_generate_air == True:
+                    if block_list[i] == 0 and do_not_generate_air is True:
                         g -= 1
 
                     # handels modded blocks also will handel blocks added to Minecraft I didn't know about
@@ -586,8 +587,10 @@ class MainWindow(QtGui.QMainWindow):
                             custom_block = custom_blocks[custom_blocks_id.index(block_list[i])]
                         elif block_list[i] in custom_blocks_id_cbs:
                             custom_block = custom_blocks_cbs[custom_blocks_id_cbs.index(block_list[i])]
-                            if additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])] not in additional_packages:
-                                additional_packages.append(additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])])
+                            if additional_packages_cbs[custom_blocks_id_cbs.index(
+                                    block_list[i])] not in additional_packages:
+                                additional_packages.append(
+                                    additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])])
                         else:
                             dialog = dialog_custom_Block(self, x, y, z, block_list[i])
                             dialog.exec_()
@@ -599,23 +602,42 @@ class MainWindow(QtGui.QMainWindow):
                             if package not in additional_packages:
                                 additional_packages.append(package)
 
-                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' + str(
-                            y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', ' + custom_block + ', ' + str(
-                            meta_data_list[i]) + ', ' + '3' + ');\n')
+                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' +
+                                       str(y + int(self.spinbox_offset.text())) + ', z + ' +
+                                       str(z) + ', ' + custom_block + ', ' + str(meta_data_list[i]) +
+                                       ', ' + '3' + ');\n')
 
                     # adds blocks witch can pop of the wall to the end of a list witch is written to the file later
                     elif str(block_name[block_id.index(block_list[i])]) in non_solid_blocks:
-                        blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' + str(
-                            y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(
-                            block_name[block_id.index(block_list[i])]) + ', ' + str(
-                            meta_data_list[i]) + ', ' + '3' + ');\n')
+                        if meta_data_rotated is not None:
+                            blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' +
+                                                      str(y + int(self.spinbox_offset.text())) +
+                                                      ', z + ' + str(z) + ', Blocks.' +
+                                                      str(block_name[block_id.index(block_list[i])]) +
+                                                      ', ' + str(meta_data_rotated) + ', ' + '3' + ');\n')
+                            meta_data_rotated = None
+                        else:
+                            blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' +
+                                                      str(y + int(self.spinbox_offset.text())) +
+                                                      ', z + ' + str(z) + ', Blocks.' +
+                                                      str(block_name[block_id.index(block_list[i])]) +
+                                                      ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
 
                     # generates setBlock command for normal blocks
                     else:
-                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' + str(
-                            y + int(self.spinbox_offset.text())) + ', z + ' + str(z) + ', Blocks.' + str(
-                            block_name[block_id.index(block_list[i])]) + ', ' + str(
-                            meta_data_list[i]) + ', ' + '3' + ');\n')
+                        if meta_data_rotated is not None:
+                            file_out.write('		world.setBlock(x + ' + str(x) +
+                                           ', y + ' + str(y + int(self.spinbox_offset.text())) +
+                                           ', z + ' + str(z) + ', Blocks.' +
+                                           str(block_name[block_id.index(block_list[i])]) +
+                                           ', ' + str(meta_data_rotated) + ', 3);\n')
+                            meta_data_rotated = None
+                        else:
+                            file_out.write('		world.setBlock(x + ' + str(x) +
+                                           ', y + ' + str(y + int(self.spinbox_offset.text())) +
+                                           ', z + ' + str(z) + ', Blocks.' +
+                                           str(block_name[block_id.index(block_list[i])]) +
+                                           ', ' + str(meta_data_list[i]) + ', 3);\n')
 
                     # counts to 1500 and splits the method after that so the methods can't exceed the byte limit in Java
                     g += 1
@@ -649,23 +671,23 @@ class MainWindow(QtGui.QMainWindow):
                 # reading in file to rewrite it
                 file_out.close()
                 file_out = open(self.lineedit_File_out_Path.text(), 'r')
-                File_out_rew = file_out.readlines()
+                file_out_rew = file_out.readlines()
                 file_out.close()
 
                 file_out = open(self.lineedit_File_out_Path.text(), 'w')
-                index_imports = File_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
+                index_imports = file_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
                 i = 0  # just for counting lines
                 for Import in additional_packages:
                     i += 1
-                    File_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
-                File_out_rew.insert(index_imports + len(additional_packages), '\n')
+                    file_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
+                file_out_rew.insert(index_imports + len(additional_packages), '\n')
                 file_out.seek(0)
-                file_out.writelines(File_out_rew)
+                file_out.writelines(file_out_rew)
 
             # print('Done! ;)')
             self.done()
             save_package(self)
-            if new_custom_block == True:
+            if new_custom_block is True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
                 dialog.exec_()
         else:
