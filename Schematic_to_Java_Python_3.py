@@ -198,7 +198,8 @@ class MainWindow(QtGui.QMainWindow):
         additional_packages_cbs = []  # all from the cbs loaded packages in this additional list to prevent unnecessary imports
         custom_blocks_id_cbs = []  # all from the cbs loaded ids in this additional list to prevent unnecessary imports
         custom_blocks_cbs = []  # all from the cbs loaded names in this additional list to prevent unnecessary imports
-        blocks_to_rotate = [50, 75, 76, 17]  # blocks witch need to be rotated by metadata
+        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162,
+                            164]  # blocks witch need to be rotated by metadata
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         if self.cbs_file is not None:
