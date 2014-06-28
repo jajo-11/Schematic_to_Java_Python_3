@@ -57,7 +57,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.lineedit_File_out_Path.setText(file2)
 
     def activate_checkbox_1(self):
-        if self.checkbox_rotation_2.isChecked() or self.checkbox_rotation_3.isChecked() or self.checkbox_rotation_4.isChecked():
+        if (self.checkbox_rotation_2.isChecked() or self.checkbox_rotation_3.isChecked() or
+                self.checkbox_rotation_4.isChecked()):
             self.checkbox_rotation_1.setDisabled(False)
         else:
             self.checkbox_rotation_1.setDisabled(True)
@@ -114,7 +115,7 @@ class MainWindow(QtGui.QMainWindow):
         skip = int.from_bytes(file_in.read(2), 'big')
         string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
         number = int.from_bytes(file_in.read(number_size), 'big')
-        # print(string + ' = ' + str(number))
+        print(string + ' = ' + str(number))
         if string == 'Height':
             self.height = number
         if string == 'Length':
@@ -230,7 +231,7 @@ class MainWindow(QtGui.QMainWindow):
                         del list_size[list_depth]
                         del list_Tagid[list_depth]
                         list_depth -= 1
-                        # print('list end')
+                        print('list end')
                         tag = file_in.read(1)
                 elif tag_depth != 0 and litC_depth != 0:
                     if list_size[list_depth] != 0:
@@ -241,7 +242,7 @@ class MainWindow(QtGui.QMainWindow):
                         del list_in_tag_Compound[litC_depth]
                         litC_depth -= 1
                         list_depth -= 1
-                        # print('list end')
+                        print('list end')
                         tag = file_in.read(1)
                 else:
                     tag = file_in.read(1)
@@ -267,7 +268,7 @@ class MainWindow(QtGui.QMainWindow):
                 # TAG_Byte_Array
                 if tag == bytearray.fromhex('07'):
                     skip = int.from_bytes(file_in.read(2), 'big')
-                    # print 'skip = ' + str(skip)
+                    print('skip = ' + str(skip))
                     string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
                     array_legnth = int.from_bytes(file_in.read(4), 'big')
                     if string == 'Blocks':
@@ -307,7 +308,7 @@ class MainWindow(QtGui.QMainWindow):
                     # print('Tag_Compound')
                 # TAG_Int_Array
                 if tag == bytearray.fromhex('0B'):
-                    # print('array')
+                    print('array')
                     break
                 # TAG_End
                 if tag == bytearray.fromhex('00'):
@@ -431,12 +432,9 @@ class MainWindow(QtGui.QMainWindow):
                                 '		{\n			return false;\n		}\n\n' \
                                 )
                     else:
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn\n		(\n' \
-                                )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n	{\n		' +
+                                       'if(!LocationIsValidSpawn\n		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if x == self.width - 1:
@@ -460,38 +458,28 @@ class MainWindow(QtGui.QMainWindow):
                 if rotations == 'generate_r1' or rotations == 'generate_r3':
 
                     if self.combobox_check_points.currentText() == 'Corners':
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn(world, x, y, z) ||' + \
-                                ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z) ||' + \
-                                ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z + ' + str(
-                                    self.width - 1) + ') ||' + \
-                                ' !LocationIsValidSpawn(world, x, y, z + ' + str(self.width - 1) + '))\n' + \
-                                '		{\n			return false;\n		}\n\n'
-                            )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n{\n		' +
+                                       'if(!LocationIsValidSpawn(world, x, y, z) ||' +
+                                       ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z) ||' +
+                                       ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z + ' +
+                                       str(self.width - 1) + ') || !LocationIsValidSpawn(world, x, y, z + ' +
+                                       str(self.width - 1) + '))\n		{\n			return false;\n		}\n\n')
                     elif self.combobox_check_points.currentText() == 'Center':
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn(world, x + ' + str(self.length // 2) + ', y, z + ' + str(
-                                    self.width // 2) + '))\n' + \
-                                '		{\n			return false;\n		}\n\n' \
-                                )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n{\n		' +
+                                       'if(!LocationIsValidSpawn(world, x + ' + str(self.length // 2) +
+                                       ', y, z + ' + str(self.width // 2) + '))\n' +
+                                       '		{\n			return false;\n		}\n\n')
                     else:
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn\n		(\n' \
-                                )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n	{\n		' +
+                                       'if(!LocationIsValidSpawn\n		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if z == 0:
                                 x += 1
-                                z = z = self.width
+                                z = self.width
                             if blocks != 0:
                                 z -= 1
                             else:
@@ -653,12 +641,22 @@ class MainWindow(QtGui.QMainWindow):
 
                     # writes all the blocks witch could pop of the wall
                     if i == size - 1:
+                        c += 1
+                        g = 0
                         file_out.write('\n		' + rotations + str(c) + '_last' + '(world, rand, x, y, z);\n' +
                                        '		return true;\n\n	}\n' +
                                        '	public boolean ' + rotations + str(c) + '_last' +
                                        '(World world, Random rand, int x, int y, int z)\n' +
                                        '	{\n\n')
                         for j in blocks_placed_last:
+                            g += 1
+                            if g % 1500 == 0:
+                                file_out.write(
+                                    '\n		' + rotations + str(c) + '_last' + '(world, rand, x, y, z);\n' +
+                                    '		return true;\n\n	}\n' +
+                                    '	public boolean ' + rotations + str(c) + '_last' +
+                                    '(World world, Random rand, int x, int y, int z)\n' +
+                                    '	{\n\n')
                             file_out.write(j)
                         blocks_placed_last.clear()
 
