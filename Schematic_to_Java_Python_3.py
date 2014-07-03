@@ -7,6 +7,9 @@ from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
 
+DEBUGGING = True
+
+
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, *args):
         self.generate_on = []
@@ -22,7 +25,7 @@ class MainWindow(QtGui.QMainWindow):
         layout(self)
         tooltipsinit(self)
         preinit(self)
-        self.createConnects()
+        self.createconnects()
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
 
     # noinspection PyCallByClass
@@ -45,7 +48,6 @@ class MainWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.warning(self, self.tr('Error'),
                                       self.tr('Unexpected Error!\nPlease Contact the Devoloper (jajo_11)'))
 
-    # noinspection PyCallByClass
     def filedialogin(self):
         file = QtGui.QFileDialog.getOpenFileName(self, u"Open File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
@@ -70,7 +72,7 @@ class MainWindow(QtGui.QMainWindow):
         if file[0] != '':
             self.lineedit_File_out_Path.setText(file[0])
 
-    def createConnects(self):
+    def createconnects(self):
         self.button_File_in.clicked.connect(self.filedialogin)
         self.button_File_out.clicked.connect(self.filedialogout)
         self.button_add_block.clicked.connect(self.add_to_list)
@@ -102,7 +104,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def enable_options(self):
         if self.lineedit_File_out_Path.text() == 'options':
-            print('Options enabled')
+            debug_print('Options enabled')
             self.options = True
             self.lineedit_File_out_Path.setText('')
 
@@ -111,37 +113,36 @@ class MainWindow(QtGui.QMainWindow):
         if dialog.exec_() == QtGui.QDialog.Accepted:
             self.cbs_file = dialog.selected
 
-    def Tag_Number(self, number_size):
-        skip = int.from_bytes(file_in.read(2), 'big')
-        string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
-        number = int.from_bytes(file_in.read(number_size), 'big')
-        print(string + ' = ' + str(number))
-        if string == 'Height':
-            self.height = number
-        if string == 'Length':
-            self.length = number
-        if string == 'Width':
-            self.width = number
+    def read_tag_name(self, tag_type, tag_container):
+        if tag_container == 0:
+            name_length = int.from_bytes(file_in.read(2), 'big')
+            name = bytes.decode(file_in.read(name_length), 'utf-8', 'strict')
+            debug_print(tag_type + ' | Name: ' + name + '| Value:', True)
+            return name
+        else:
+            debug_print(tag_type + '| Value:', True)
+            return None
 
     def convert(self):
-        list_size = [0]  # length of lists, sorted in order of creation, entry will be removed when list
-        # is finished
-        list_Tagid = [0]  # tag id of lists, sorted in order of creation, entry will be removed when list
-        # is finished
-        list_depth = 0  # determines how many lists are stacked on to each other currently
-        tag_depth = 0  # determines how many tags are stacked on to each other currently
-        list_in_tag_Compound = [False]  # contains entrys for each list in a tag compound
-        litC_depth = 0  # [list in tag Compound depth] determines how many lists in a tag compound are
-        # stacked on to each other currently
+
+        # first the tag id of the items in the list and than the list size or a zero for tag compounds
+        tag_container = [[0, 0]]
+
+        # array with all the blocks and corresponding meta data
         block_list = bytearray()
         meta_data_list = bytearray()
+
+        # height, length and width of the structure saved as a short in the schematic (2 bytes long)
         self.height = 0
         self.length = 0
         self.width = 0
+
+        # x, y and z of the current block. Size is defined later and is the product of x, y, and z.
         x = 0
         y = 0
         z = 0
-        size = 0  # blocks in the struckture
+
+        # all the ids in use in Minecraft 1.7 and the corresponding string names
         block_id = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
                     27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
                     52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
@@ -150,7 +151,7 @@ class MainWindow(QtGui.QMainWindow):
                     121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140,
                     141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
                     162, 163, 164, 165, 166, 167, 170, 171, 172, 173, 174,
-                    175]  # all the ids currently used in the game
+                    175]
         block_name = ['air', 'stone', 'grass', 'dirt', 'cobblestone', 'planks', 'sapling', 'bedrock', 'flowing_water',
                       'water', 'flowing_lava', 'lava', 'sand', 'gravel', 'gold_ore', 'iron_ore', 'coal_ore', 'log',
                       'leaves', 'sponge', 'glass', 'lapis_ore', 'lapis_block', 'dispenser', 'sandstone', 'note', 'bed',
@@ -179,32 +180,41 @@ class MainWindow(QtGui.QMainWindow):
                       'activator_rail', 'dropper', 'stained_hardened_clay', 'stained_glass', 'log2', 'acacia_stairs',
                       'dark_oak_stairs', 'slime_block', 'barrier', 'iron_trapdoor', 'hay_block', 'carpet',
                       'hardened_clay', 'coal_block', 'packed_ice',
-                      'double_plant']  # list of blocks ids are stored in list block_id with the same index number
+                      'double_plant']
+
+        # all the blocks that have to be placed last because they could drop as an item instantly
         non_solid_blocks = ['torch', 'ladder', 'wall_sign', 'lever', 'unlit_redstone_torch', 'redstone_torch',
-                            'stone_button']  # list of blocks wich could pop of the wall
-        blocks_placed_last = []  # a list of blocks wich are placed after all the other blocks to prevent them from poping of the walls
-        chest = False
+                            'stone_button']
+
+        # a list of all the lines to spawn in the blocks from the list non_solid_blocks
+        blocks_placed_last = []
+
         g = 0  # counts up to 1500 to split the methode
         c = 1  # counts the total number of "setblock" methodes
+
+        # rotation
         rotations = []  # list contains checked rotations
         rotationscount = 0  # counts the total items in rotations[]
-        custom_block = ''  # name of the custom block (modded) handled last
-        custom_blocks = []  # contains all the custom block names assigned
-        custom_blocks_id = []  # All the custom ids. Index matching names in custom_blocks list
-        new_custom_block = False  # is set to True if there was an unknown custom block in the schematic, to ask afterwards for saving the custom block name
-        additional_packages = []  # list stores all the additional imports for custom blocks
-        package = ''  # stores last custom blocks package import
-        file_out_rew = []  # If there are packages for custom blocks that have to be loaded the file has to be read in edited and written again this list will contain all the lines of File out
-        index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
-        additional_packages_cbs = []  # all from the cbs loaded packages in this additional list to prevent unnecessary imports
-        custom_blocks_id_cbs = []  # all from the cbs loaded ids in this additional list to prevent unnecessary imports
-        custom_blocks_cbs = []  # all from the cbs loaded names in this additional list to prevent unnecessary imports
-        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162,
-                            164]  # blocks witch need to be rotated by metadata
+        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
+        # custom blocks
+        custom_block = ''  # name of the custom block (modded) handled last
+        custom_blocks = []  # contains all the custom block names set by the user
+        custom_blocks_id = []  # All the custom ids. Index matching names in custom_blocks list
+        custom_blocks_id_cbs = []  # all from the cbs loaded ids
+        custom_blocks_cbs = []  # all from the cbs loaded names
+        new_custom_block = False  # is set to True if there was an unknown custom block in the schematic
+
+        # additional packages for custom blocks
+        additional_packages = []  # list stores all the additional imports for custom blocks
+        package = ''  # stores last custom blocks package import
+        additional_packages_cbs = []  # all from the cbs loaded packages
+        file_out_rew = []  # if the file needs to be rewritten this list will contain all the lines of the file.
+        index_imports = 0  # index of the last import line (import net.minecraft.world.gen.feature.WorldGenerator;\n)
+
         if self.cbs_file is not None:
-            if self.cbs_file[0] == True:
+            if self.cbs_file[0]:
                 file = open(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets/' + self.cbs_file[1], 'rb')
             else:
                 file = open(self.cbs_file[1])
@@ -219,117 +229,101 @@ class MainWindow(QtGui.QMainWindow):
         do_not_generate_air = self.checkbox_Generate_Air.isChecked()
 
         if file_in.read(12) == bytearray.fromhex('0A0009536368656D61746963'):
-            # print("It's a schematic!")
+            debug_print("It's a schematic!")
             while True:
 
-                tag = list_Tagid[list_depth]
-
-                if tag_depth == 0 and list_depth != 0:
-                    if list_size[list_depth] != 0:
-                        list_size[list_depth] -= 1
+                if tag_container[-1][0] != 0:
+                    if tag_container[-1][1] != 0:
+                        tag_container[-1][1] -= 1
+                        tag = tag_container[-1][0]
                     else:
-                        del list_size[list_depth]
-                        del list_Tagid[list_depth]
-                        list_depth -= 1
-                        print('list end')
-                        tag = file_in.read(1)
-                elif tag_depth != 0 and litC_depth != 0:
-                    if list_size[list_depth] != 0:
-                        list_size[list_depth] -= 1
-                    else:
-                        del list_size[list_depth]
-                        del list_Tagid[list_depth]
-                        del list_in_tag_Compound[litC_depth]
-                        litC_depth -= 1
-                        list_depth -= 1
-                        print('list end')
-                        tag = file_in.read(1)
+                        del tag_container[-1]
                 else:
                     tag = file_in.read(1)
 
                 # TAG_Byte
                 if tag == bytearray.fromhex('01'):
-                    self.Tag_Number(1)
+                    self.read_tag_name('Byte', tag_container[-1][0])
+                    debug_print(int.from_bytes(file_in.read(1), 'big'))
                 # TAG_Short
-                if tag == bytearray.fromhex('02'):
-                    self.Tag_Number(2)
+                elif tag == bytearray.fromhex('02'):
+                    name = self.read_tag_name('Short', tag_container[-1][0])
+                    number = int.from_bytes(file_in.read(2), 'big')
+                    debug_print(number)
+                    if name == 'Height':
+                        self.height = number
+                    elif name == 'Length':
+                        self.length = number
+                    elif name == 'Width':
+                        self.width = number
                 # TAG_Int
-                if tag == bytearray.fromhex('03'):
-                    self.Tag_Number(4)
+                elif tag == bytearray.fromhex('03'):
+                    self.read_tag_name('Int', tag_container[-1][0])
+                    debug_print(int.from_bytes(file_in.read(4), 'big'))
                 # TAG_Long
-                if tag == bytearray.fromhex('04'):
-                    self.Tag_Number(8)
+                elif tag == bytearray.fromhex('04'):
+                    self.read_tag_name('Long', tag_container[-1][0])
+                    debug_print(int.from_bytes(file_in.read(8), 'big'))
                 # TAG_Float
-                if tag == bytearray.fromhex('05'):
-                    self.Tag_Number(4)
+                elif tag == bytearray.fromhex('05'):
+                    self.read_tag_name('Float', tag_container[-1][0])
+                    debug_print(int.from_bytes(file_in.read(4), 'big'))
                 # TAG_Double
-                if tag == bytearray.fromhex('06'):
-                    self.Tag_Number(8)
+                elif tag == bytearray.fromhex('06'):
+                    self.read_tag_name('Double', tag_container[-1][0])
+                    debug_print(int.from_bytes(file_in.read(8), 'big'))
                 # TAG_Byte_Array
-                if tag == bytearray.fromhex('07'):
-                    skip = int.from_bytes(file_in.read(2), 'big')
-                    print('skip = ' + str(skip))
-                    string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
-                    array_legnth = int.from_bytes(file_in.read(4), 'big')
-                    if string == 'Blocks':
-                        block_list = bytearray(file_in.read(array_legnth))
-                        # print('Blocks')
-                    elif string == 'Data':
-                        meta_data_list = bytearray(file_in.read(array_legnth))
-                        # print('Data')
+                elif tag == bytearray.fromhex('07'):
+                    name = self.read_tag_name('Byte Array', tag_container[-1][0])
+                    array_length = int.from_bytes(file_in.read(4), 'big')
+                    if name == 'Blocks':
+                        block_list = bytearray(file_in.read(array_length))
+                    elif name == 'Data':
+                        meta_data_list = bytearray(file_in.read(array_length))
                     else:
-                        byte_aray = file_in.read(array_legnth)
-                        # print('byte array: ' + string)
+                        file_in.read(array_length)
+                    debug_print('Won\'t print Byte Array')
                 # TAG_String
-                if tag == bytearray.fromhex('08'):
-                    skip = int.from_bytes(file_in.read(2), 'big')
-                    # print 'skip = ' + str(skip)
-                    string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
+                elif tag == bytearray.fromhex('08'):
+                    self.read_tag_name('String', tag_container[-1][0])
                     string_length = int.from_bytes(file_in.read(2), 'big')
-                    content = bytes.decode(file_in.read(string_length), 'utf-8', 'strict')
-                    # print = (string + ' = ' + content)
-                    if 'Chest' in content:
-                        Chest = True
+                    string = bytes.decode(file_in.read(string_length), 'utf-8', 'strict')
+                    debug_print(string)
                 # TAG_List
-                if tag == bytearray.fromhex('09'):
-                    list_depth += 1
-                    skip = int.from_bytes(file_in.read(2), 'big')
-                    # print 'skip = ' + str(skip)
-                    string = bytes.decode(file_in.read(skip), 'utf-8', 'strict')
-                    list_Tagid.insert(list_depth, file_in.read(1))
-                    list_size.insert(list_depth, int.from_bytes(file_in.read(4), 'big'))
-                    # print('List: ' + string + ' | Tag Id: ' + str(int.from_bytes([list_depth], 'big')))
-                    if tag_depth != 0:
-                        litC_depth += 1
-                        list_in_tag_Compound.insert(litC_depth, True)
+                elif tag == bytearray.fromhex('09'):
+                    self.read_tag_name('List', tag_container[-1][0])
+                    tag_container.append([file_in.read(1), int.from_bytes(file_in.read(4), 'big')])
+                    debug_print('Won\'t print list | Tag Id: ' + str(int.from_bytes(tag_container[-1][0], 'big')) +
+                                ' | Length: ' + str(tag_container[-1][1]))
                 # TAG_Compound
-                if tag == bytearray.fromhex('0A'):
-                    tag_depth += 1
-                    # print('Tag_Compound')
-                # TAG_Int_Array
-                if tag == bytearray.fromhex('0B'):
-                    print('array')
-                    break
+                elif tag == bytearray.fromhex('0A'):
+                    self.read_tag_name('Tag Compound', tag_container[-1][0])
+                    tag_container.append([[0][0]])
+                    debug_print('Tag Compounds don\'t have a Value')
                 # TAG_End
-                if tag == bytearray.fromhex('00'):
-                    if tag_depth != 0:
-                        tag_depth -= 1
-                        # print('Tag_Compound End')
-                        if list_Tagid[list_depth] == bytearray.fromhex('0A'):
-                            tag = list_Tagid[list_depth]
+                elif tag == bytearray.fromhex('00'):
+                    if tag_container[-1][0] == 0 and len(tag_container) > 1:
+                        del tag_container[-1]
+                        debug_print('Tag_Compound End')
                     else:
-                        # print('End of File')
+                        debug_print('End of File')
                         break
+                else:
+                    debug_print('Well that went unexpectedly...\nUnknown tag type: ' + str(int.from_bytes(tag, 'big')))
+                    QtGui.QMessageBox.information(self, self.tr('Error'), self.tr('Well that went unexpectedly...\n' +
+                                                                                  'Unknown tag type: ' + str(
+                        int.from_bytes(tag, 'big'))))
+                    sys.exit(int.from_bytes(tag, 'big'))
 
             size = self.height * self.length * self.width  # calculate block count
 
-            # print(self.length)
-            # print(self.width)
-            # print('Writing file')
+            debug_print(self.length)
+            debug_print(self.width)
+            debug_print('Writing file')
 
             file_out.write(
-                '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"\n' +
-                '\npackage ' + self.combobox_Package.currentText() +
+                '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING' +
+                'TOOL"\n\npackage ' + self.combobox_Package.currentText() +
                 ';\n\nimport java.util.Random;\n' +
                 '\nimport net.minecraft.block.Block;\n' +
                 'import net.minecraft.block.material.Material;\n' +
@@ -353,36 +347,29 @@ class MainWindow(QtGui.QMainWindow):
                 rotations.append('generate_r2')
             if self.checkbox_rotation_4.isChecked():
                 rotations.append('generate_r3')
-            for i in rotations:
-                rotationscount += 1
+            rotationscount = len(rotations)
 
-            file_out.write \
-                (
-                    '		};\n	}\n\n' + \
-                    '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n' + \
-                    '	{\n		int distanceToAir = 0;\n' + \
-                    '		Block checkBlock = world.getBlock(x, y, z);\n\n' + \
-                    '		while (checkBlock != Blocks.air)\n		{\n' + \
-                    '			distanceToAir++;\n' + \
-                    '			checkBlock = world.getBlock(x, y + distanceToAir, z);\n		}\n\n' + \
-                    '		if (distanceToAir > 1)\n		{\n			return false;\n		}\n\n' + \
-                    '		y += distanceToAir - 1;\n\n' + \
-                    '		Block block = world.getBlock(x, y, z);\n' + \
-                    '		Block blockAbove = world.getBlock(x, y + 1, z);\n' + \
-                    '		Block blockBelow = world.getBlock(x, y - 1, z);\n\n' + \
-                    '		for (Block i : GetValidSpawnBlocks())\n		{\n' + \
-                    '			if (blockAbove != Blocks.air)\n			{\n' + \
-                    '				return false;\n			}\n' + \
-                    '			if (block == i)\n			{\n				return true;\n			}\n' + \
-                    '			else if (block == Blocks.snow_layer && blockBelow == i)\n' + \
-                    '			{\n				return true;\n			}\n' + \
-                    '			else if (block.getMaterial() == Material.plants && blockBelow == i)\n' + \
-                    '			{\n				return true;\n			}\n		}\n' + \
-                    '		return false;\n	}\n\n' + \
-                    '	public boolean generate(World world, Random rand, int x, int y, int z)\n' + \
-                    '	{\n		' + \
-                    'int i = rand.nextInt(' + str(rotationscount) + ');\n\n' \
-                    )
+            file_out.write('		};\n	}\n\n' +
+                           '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n' +
+                           '	{\n		int distanceToAir = 0;\n' +
+                           '		Block checkBlock = world.getBlock(x, y, z);\n\n' +
+                           '		while (checkBlock != Blocks.air)\n		{\n			distanceToAir++;\n' +
+                           '			checkBlock = world.getBlock(x, y + distanceToAir, z);\n		}\n\n' +
+                           '		if (distanceToAir > 1)\n		{\n			return false;\n		}\n\n' +
+                           '		y += distanceToAir - 1;\n\n		Block block = world.getBlock(x, y, z);\n' +
+                           '		Block blockAbove = world.getBlock(x, y + 1, z);\n' +
+                           '		Block blockBelow = world.getBlock(x, y - 1, z);\n\n' +
+                           '		for (Block i : GetValidSpawnBlocks())\n		{\n' +
+                           '			if (blockAbove != Blocks.air)\n			{\n' +
+                           '				return false;\n			}\n' +
+                           '			if (block == i)\n			{\n				return true;\n			}\n' +
+                           '			else if (block == Blocks.snow_layer && blockBelow == i)\n' +
+                           '			{\n				return true;\n			}\n' +
+                           '			else if (block.getMaterial() == Material.plants && blockBelow == i)\n' +
+                           '			{\n				return true;\n			}\n		}\n' +
+                           '		return false;\n	}\n\n' +
+                           '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +
+                           '	{\n		int i = rand.nextInt(' + str(rotationscount) + ');\n\n')
 
             # generates code for random decision of the rotation
             for i in range(0, rotationscount):
@@ -391,7 +378,7 @@ class MainWindow(QtGui.QMainWindow):
             file_out.write('       return true;\n\n	}\n\n')
 
             # checks for advanced options
-            if self.options == True:
+            if self.options:
 
                 # same as obove only that this one is alredy called with a certain rotation disabeld by default
                 file_out.write(
@@ -411,26 +398,19 @@ class MainWindow(QtGui.QMainWindow):
                 if rotations == 'generate_r0' or rotations == 'generate_r2':
 
                     if self.combobox_check_points.currentText() == 'Corners':
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn(world, x, y, z) ||' + \
-                                ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' + \
-                                ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z + ' + str(
-                                    self.length - 1) + ') ||' + \
-                                ' !LocationIsValidSpawn(world, x, y, z + ' + str(self.length - 1) + '))\n' + \
-                                '		{\n			return false;\n		}\n\n'
-                            )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n' +
+                                       '	{\n		if(!LocationIsValidSpawn(world, x, y, z) ||' +
+                                       ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' +
+                                       ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z + ' +
+                                       str(self.length - 1) + ') || !LocationIsValidSpawn(world, x, y, z + ' +
+                                       str(self.length - 1) + '))\n		{\n			return false;\n		}\n\n')
                     elif self.combobox_check_points.currentText() == 'Center':
-                        file_out.write \
-                            (
-                                '	public boolean ' + rotations + '(World world, Random rand, int x, int y, int z)\n' + \
-                                '	{\n		' + \
-                                'if(!LocationIsValidSpawn(world, x + ' + str(self.width // 2) + ', y, z + ' + str(
-                                    self.length // 2) + '))\n' + \
-                                '		{\n			return false;\n		}\n\n' \
-                                )
+                        file_out.write('	public boolean ' + rotations +
+                                       '(World world, Random rand, int x, int y, int z)\n' +
+                                       '	{\n		if(!LocationIsValidSpawn(world, x + ' +
+                                       str(self.width // 2) + ', y, z + ' + str(self.length // 2) +
+                                       '))\n		{\n			return false;\n		}\n\n')
                     else:
                         file_out.write('	public boolean ' + rotations +
                                        '(World world, Random rand, int x, int y, int z)\n	{\n		' +
@@ -683,7 +663,7 @@ class MainWindow(QtGui.QMainWindow):
                 file_out.seek(0)
                 file_out.writelines(file_out_rew)
 
-            # print('Done! ;)')
+            # debug_print('Done! ;)')
             self.done()
             save_package(self)
             if new_custom_block is True:
@@ -691,10 +671,18 @@ class MainWindow(QtGui.QMainWindow):
                 dialog.exec_()
         else:
 
-            # print("This isn't a schematic! Exiting...")
+            # debug_print("This isn't a schematic! Exiting...")
             self.noschematic()
         file_in.close()
         file_out.close()
+
+
+def debug_print(string, args=False):
+    if DEBUGGING:
+        if args:
+            print(string, end=' ')
+        else:
+            print(string)
 
 
 def main(argv):

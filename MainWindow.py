@@ -57,27 +57,27 @@ def layout(self):
 
     self.group_rotation.setLayout(layoutgrouprotation)
 
-    widgetZentral = QtGui.QWidget()
-    layoutZentral = QtGui.QGridLayout()
-    layoutZentral.addWidget(self.label_File_in_Path, 0, 0, 1, 1)
-    layoutZentral.addWidget(self.lineedit_File_in_Path, 1, 0, 1, 5)
-    layoutZentral.addWidget(self.button_File_in, 1, 5, 1, 1)
-    layoutZentral.addWidget(self.label_File_out_Path, 2, 0, 1, 1)
-    layoutZentral.addWidget(self.lineedit_File_out_Path, 3, 0, 1, 5)
-    layoutZentral.addWidget(self.button_File_out, 3, 5, 1, 1)
-    layoutZentral.addWidget(self.label_Package, 4, 0, 1, 1)
-    layoutZentral.addWidget(self.combobox_Package, 5, 0, 1, 5)
-    layoutZentral.addWidget(self.label_Genetate_on, 6, 0, 1, 1)
-    layoutZentral.addWidget(self.combobox_Generate_on, 7, 0, 1, 4)
-    layoutZentral.addWidget(self.button_add_block, 7, 4, 1, 1)
-    layoutZentral.addWidget(self.button_remove_block, 7, 5, 1, 1)
-    layoutZentral.addWidget(self.list_Generate_on, 8, 0, 1, 6)
-    layoutZentral.addWidget(self.group_options, 9, 0, 1, 2)
-    layoutZentral.addWidget(self.group_rotation, 9, 2, 1, 4)
-    layoutZentral.addWidget(self.button_Start, 10, 0, 1, 6)
+    widgetzentral = QtGui.QWidget()
+    layoutzentral = QtGui.QGridLayout()
+    layoutzentral.addWidget(self.label_File_in_Path, 0, 0, 1, 1)
+    layoutzentral.addWidget(self.lineedit_File_in_Path, 1, 0, 1, 5)
+    layoutzentral.addWidget(self.button_File_in, 1, 5, 1, 1)
+    layoutzentral.addWidget(self.label_File_out_Path, 2, 0, 1, 1)
+    layoutzentral.addWidget(self.lineedit_File_out_Path, 3, 0, 1, 5)
+    layoutzentral.addWidget(self.button_File_out, 3, 5, 1, 1)
+    layoutzentral.addWidget(self.label_Package, 4, 0, 1, 1)
+    layoutzentral.addWidget(self.combobox_Package, 5, 0, 1, 5)
+    layoutzentral.addWidget(self.label_Genetate_on, 6, 0, 1, 1)
+    layoutzentral.addWidget(self.combobox_Generate_on, 7, 0, 1, 4)
+    layoutzentral.addWidget(self.button_add_block, 7, 4, 1, 1)
+    layoutzentral.addWidget(self.button_remove_block, 7, 5, 1, 1)
+    layoutzentral.addWidget(self.list_Generate_on, 8, 0, 1, 6)
+    layoutzentral.addWidget(self.group_options, 9, 0, 1, 2)
+    layoutzentral.addWidget(self.group_rotation, 9, 2, 1, 4)
+    layoutzentral.addWidget(self.button_Start, 10, 0, 1, 6)
 
-    widgetZentral.setLayout(layoutZentral)
-    self.setCentralWidget(widgetZentral)
+    widgetzentral.setLayout(layoutzentral)
+    self.setCentralWidget(widgetzentral)
 
 
 def tooltipsinit(self):
@@ -85,14 +85,17 @@ def tooltipsinit(self):
         self.tr('Enter the path to the .schematic file you want to convert or press \"Browse...\" to select a file.'))
     self.button_File_in.setToolTip(self.tr('Opens a window where you can select a .schematic file.'))
     self.lineedit_File_out_Path.setToolTip(self.tr(
-        'Enter the path where the .java file should be outputted to or press \"Browse...\" to select a destination.\nNotice that the class name depends on the name of the output file.'))
+        'Enter the path where the .java file should be outputted to or press \"Browse...\" to select a destination.' +
+        '\nNotice that the class name depends on the name of the output file.'))
     self.button_File_out.setToolTip(
         self.tr('Opens a window where you can select a destination for the outputed .java file.'))
     self.combobox_Package.setToolTip(self.tr(
-        'Enter the package name where your .java file will be in your mod.\nUsually looks like yourname.modname.\nPackages used before will appear here.'))
+        'Enter the package name where your .java file will be in your mod.\nUsually looks like yourname.modname.\n' +
+        'Packages used before will appear here.'))
     self.checkbox_Generate_Air.setToolTip(self.tr('When enabled all the air blocks in the structure will be ignored.'))
     self.combobox_Generate_on.setToolTip(self.tr(
-        'Select or enter blocks on which the structure can generate.\nPress \"+\" to add your block to the list below.\nNotice that only blocks in the list will be added to the valid spawn blocks.'))
+        'Select or enter blocks on which the structure can generate.\nPress \"+\" to add your block to the list' +
+        ' below.\nNotice that only blocks in the list will be added to the valid spawn blocks.'))
     self.button_add_block.setToolTip(self.tr('Adds the current block from the box on the left to the list below.'))
     self.button_remove_block.setToolTip(self.tr('Removes the selected item from the list below.'))
     self.list_Generate_on.setToolTip(self.tr('List of blocks considered as valid spawn blocks.'))
@@ -103,13 +106,17 @@ def tooltipsinit(self):
     self.button_manage_cbs.setToolTip(self.tr('Opens a window where you can manage your custom block sets.'))
     self.button_manage_cl.setToolTip(self.tr('Opens a window where you can manage your random chest loot.'))
     self.checkbox_rotation_1.setToolTip(self.tr(
-        'If checked the Structure will be spawn unrotated.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+        'If checked the Structure will be spawn unrotated.\nIf you select multiple rotations the rotation will be' +
+        ' decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.checkbox_rotation_2.setToolTip(self.tr(
-        'If checked the Structure will be spawn rotated by 90 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+        'If checked the Structure will be spawn rotated by 90 degrees.\nIf you select multiple rotations the' +
+        ' rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.checkbox_rotation_3.setToolTip(self.tr(
-        'If checked the Structure will be spawn rotated by 180 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+        'If checked the Structure will be spawn rotated by 180 degrees.\nIf you select multiple rotations the' +
+        ' rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.checkbox_rotation_4.setToolTip(self.tr(
-        'If checked the Structure will be spawn rotated by 270 degrees.\nIf you select multiple rotations the rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
+        'If checked the Structure will be spawn rotated by 270 degrees.\nIf you select multiple rotations the' +
+        ' rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.button_Start.setToolTip(self.tr('Starts the converting process.'))
     self.setToolTip(
         self.tr('Schematic to Java Structure by jajo_11 inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"'))
