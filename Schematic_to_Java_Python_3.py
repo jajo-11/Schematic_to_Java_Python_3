@@ -120,7 +120,7 @@ class MainWindow(QtGui.QMainWindow):
             debug_print(tag_type + ' | Name: ' + name + '| Value:', True)
             return name
         else:
-            debug_print(tag_type + '| Value:', True)
+            debug_print(tag_type + ' | Value:', True)
             return None
 
     def convert(self):
@@ -238,6 +238,7 @@ class MainWindow(QtGui.QMainWindow):
                         tag = tag_container[-1][0]
                     else:
                         del tag_container[-1]
+                        tag = file_in.read(1)
                 else:
                     tag = file_in.read(1)
 
@@ -298,7 +299,7 @@ class MainWindow(QtGui.QMainWindow):
                 # TAG_Compound
                 elif tag == bytearray.fromhex('0A'):
                     self.read_tag_name('Tag Compound', tag_container[-1][0])
-                    tag_container.append([[0][0]])
+                    tag_container.append([0, 0])
                     debug_print('Tag Compounds don\'t have a Value')
                 # TAG_End
                 elif tag == bytearray.fromhex('00'):
