@@ -7,7 +7,7 @@ from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
 
-DEBUGGING = True
+DEBUGGING = False
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -195,7 +195,7 @@ class MainWindow(QtGui.QMainWindow):
         # rotation
         rotations = []  # list contains checked rotations
         rotationscount = 0  # counts the total items in rotations[]
-        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164]
+        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         # custom blocks
@@ -621,7 +621,7 @@ class MainWindow(QtGui.QMainWindow):
                         g = 0
 
                     # writes all the blocks witch could pop of the wall
-                    if i == size - 1:
+                    if i == size - 1 and blocks_placed_last != []:
                         c += 1
                         g = 0
                         file_out.write('\n		' + rotations + str(c) + '_last' + '(world, rand, x, y, z);\n' +
