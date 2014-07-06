@@ -27,7 +27,7 @@ def rotate_meta_data(rotation, block, meta_data):
         elif rotation == 'generate_r3':
             meta_data_list = [2, 3, 1, 0, 6, 7, 5, 4]
             meta_data = meta_data_list[meta_data]
-    elif block in ['piston', 'sticky_piston']:
+    elif block in ['piston', 'sticky_piston', 'piston_head']:
         if rotation == 'generate_r1':
             meta_data_list = [0, 1, 4, 5, 3, 2, 6, 7, 8, 9, 12, 13, 11, 10, 14, 15]
             meta_data = meta_data_list[meta_data]
