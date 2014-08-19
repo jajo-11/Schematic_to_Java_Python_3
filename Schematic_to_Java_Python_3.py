@@ -195,7 +195,8 @@ class MainWindow(QtGui.QMainWindow):
         # rotation
         rotations = []  # list contains checked rotations
         rotationscount = 0  # counts the total items in rotations[]
-        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34]
+        blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34,
+                            69]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         # custom blocks
@@ -415,7 +416,7 @@ class MainWindow(QtGui.QMainWindow):
                     else:
                         file_out.write('	public boolean ' + rotations +
                                        '(World world, Random rand, int x, int y, int z)\n	{\n		' +
-                                       'if(!LocationIsValidSpawn\n		(\n')
+                                       'if\n		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if x == self.width - 1:
@@ -430,11 +431,11 @@ class MainWindow(QtGui.QMainWindow):
                             if blocks == ((self.width * self.length) - 1):
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
-                                        z) + ')\n	    	)\n\n')
+                                        z) + ')\n       )\n\n')
                             else:
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
-                                        z) + ' ||\n')
+                                        z) + ') ||\n')
 
                 if rotations == 'generate_r1' or rotations == 'generate_r3':
 
@@ -455,7 +456,7 @@ class MainWindow(QtGui.QMainWindow):
                     else:
                         file_out.write('	public boolean ' + rotations +
                                        '(World world, Random rand, int x, int y, int z)\n	{\n		' +
-                                       'if(!LocationIsValidSpawn\n		(\n')
+                                       'if\n		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if z == 0:
@@ -470,11 +471,11 @@ class MainWindow(QtGui.QMainWindow):
                             if blocks == ((self.width * self.length) - 1):
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
-                                        z) + ')\n	    	)\n\n')
+                                        z) + ')\n	    )\n\n')
                             else:
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
-                                        z) + ' ||\n')
+                                        z) + ') ||\n')
 
                 for i in range(0, size):
 

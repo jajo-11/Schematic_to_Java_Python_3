@@ -37,4 +37,15 @@ def rotate_meta_data(rotation, block, meta_data):
         if rotation == 'generate_r3':
             meta_data_list = [0, 1, 5, 4, 2, 3, 6, 7, 8, 9, 13, 12, 10, 11, 14, 15]
             meta_data = meta_data_list[meta_data]
+    elif block == 'lever':
+        if rotation == 'generate_r1':
+            meta_data_list = [0, 4, 3, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r2':
+            meta_data_list = [0, 2, 1, 4, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r3':
+            meta_data_list = [0, 3, 4, 2, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            meta_data = meta_data_list[meta_data]
+
     return meta_data

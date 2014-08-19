@@ -14,4 +14,4 @@ setup(  name = "Structure to Java Converter",
         version = "0.4",
         description = "Converts .schematics into java class so it can be used to spawn whatever was in the schematic as a dungeon.",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("Schematic_to_Java_Python_3.py", icon="logo.ico", base=base), Executable('MainWindow.py')])
+        executables = [Executable("Schematic_to_Java_Python_3.py", icon="logo.ico", base=base)])
