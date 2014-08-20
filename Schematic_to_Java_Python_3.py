@@ -28,25 +28,38 @@ class MainWindow(QtGui.QMainWindow):
         self.createconnects()
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
 
-    # noinspection PyCallByClass
     def convertchecker(self):
-        if self.lineedit_File_in_Path.text() == '':
+        file_list_in = self.lineedit_File_in_Path.text().split("; ")
+        if file_list_in[-1] == "" and len(file_list_in) != 1:
+            del file_list_in[-1]
+        file_list_out = self.lineedit_File_out_Path.text().split("; ")
+        if file_list_out[-1] == "" and len(file_list_out) != 1:
+            del file_list_out[-1]
+
+        if file_list_in == ['']:
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No File Selected!'))
-        elif self.lineedit_File_in_Path.text() == self.lineedit_File_out_Path.text():
+        elif file_list_in == file_list_out:
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('In and Output are identical'))
-        elif self.lineedit_File_out_Path.text() == '':
-            file_out_name = self.lineedit_File_in_Path.text().rstrip('schematic') + 'java'
-            self.lineedit_File_out_Path.setText(file_out_name)
-            if not self.generate_on:
-                QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No blocks to generate on set!'))
-            self.convert()
         elif not self.generate_on:
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No blocks to generate on set!'))
-        elif self.lineedit_File_in_Path.text() != '':
-            self.convert()
         else:
-            QtGui.QMessageBox.warning(self, self.tr('Error'),
-                                      self.tr('Unexpected Error!\nPlease Contact the Devoloper (jajo_11)'))
+            if len(file_list_in) != len(file_list_out):
+                if len(file_list_in) != 1:
+                    for file in range(0, len(file_list_in)):
+                        if not file_list_out[file]:
+                            file_list_out[file] = file_list_in[file].rstrip('schematic') + 'java'
+                            if file == 0:
+                                self.lineedit_File_out_Path.setText(self.lineedit_File_out_Path.text() +
+                                                                    file_list_out[file])
+                            else:
+                                self.lineedit_File_out_Path.setText(self.lineedit_File_out_Path.text() +
+                                                                    "; " + file_list_out[file])
+                else:
+                    file_list_out[0] = file_list_in[0].rstrip('schematic') + 'java'
+                    self.lineedit_File_out_Path.setText(file_list_in[0])
+            for file in range(0, len(file_list_in)):
+                self.convert(file_list_in[file], file_list_out[file])
+            self.done()
 
     def filedialogin(self):
         file = QtGui.QFileDialog.getOpenFileName(self, u"Open File", QtGui.QDesktopServices.storageLocation(
@@ -86,6 +99,7 @@ class MainWindow(QtGui.QMainWindow):
         self.lineedit_File_out_Path.editingFinished.connect(self.enable_options)
 
     def done(self):
+        debug_print("Done! ;)")
         QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
 
     def noschematic(self):
@@ -123,7 +137,7 @@ class MainWindow(QtGui.QMainWindow):
             debug_print(tag_type + ' | Value:', True)
             return None
 
-    def convert(self):
+    def convert(self, arg_file_in, arg_file_out):
 
         # first the tag id of the items in the list and than the list size or a zero for tag compounds
         tag_container = [[0, 0]]
@@ -225,8 +239,8 @@ class MainWindow(QtGui.QMainWindow):
             file.close()
 
         global file_in
-        file_in = gzip.open(self.lineedit_File_in_Path.text(), 'rb')
-        file_out = open(self.lineedit_File_out_Path.text(), 'w')
+        file_in = gzip.open(arg_file_in, 'rb')
+        file_out = open(arg_file_out, 'w')
         do_not_generate_air = self.checkbox_Generate_Air.isChecked()
 
         if file_in.read(12) == bytearray.fromhex('0A0009536368656D61746963'):
@@ -332,7 +346,7 @@ class MainWindow(QtGui.QMainWindow):
                 'import net.minecraft.init.Blocks;\n' +
                 'import net.minecraft.world.World;\n' +
                 'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' +
-                'public class ' + os.path.splitext(os.path.basename(self.lineedit_File_out_Path.text()))[0] +
+                'public class ' + os.path.splitext(os.path.basename(arg_file_out))[0] +
                 ' extends WorldGenerator\n' +
                 '{\n	protected Block[] GetValidSpawnBlocks()\n' +
                 '	{\n		return new Block[]\n' +
@@ -651,11 +665,11 @@ class MainWindow(QtGui.QMainWindow):
 
                 # reading in file to rewrite it
                 file_out.close()
-                file_out = open(self.lineedit_File_out_Path.text(), 'r')
+                file_out = open(arg_file_out, 'r')
                 file_out_rew = file_out.readlines()
                 file_out.close()
 
-                file_out = open(self.lineedit_File_out_Path.text(), 'w')
+                file_out = open(arg_file_out, 'w')
                 index_imports = file_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
                 i = 0  # just for counting lines
                 for Import in additional_packages:
@@ -664,16 +678,14 @@ class MainWindow(QtGui.QMainWindow):
                 file_out_rew.insert(index_imports + len(additional_packages), '\n')
                 file_out.seek(0)
                 file_out.writelines(file_out_rew)
-
-            # debug_print('Done! ;)')
-            self.done()
+            debug_print('Done! ;)')
             save_package(self)
             if new_custom_block is True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
                 dialog.exec_()
         else:
 
-            # debug_print("This isn't a schematic! Exiting...")
+            debug_print("This isn't a schematic! Exiting...")
             self.noschematic()
         file_in.close()
         file_out.close()
