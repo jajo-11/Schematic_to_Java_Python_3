@@ -7,7 +7,7 @@ from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
 
-DEBUGGING = False
+DEBUGGING = True
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -29,12 +29,10 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
 
     def convertchecker(self):
-        file_list_in = self.lineedit_File_in_Path.text().split("; ")
-        if file_list_in[-1] == "" and len(file_list_in) != 1:
-            del file_list_in[-1]
-        file_list_out = self.lineedit_File_out_Path.text().split("; ")
-        if file_list_out[-1] == "" and len(file_list_out) != 1:
-            del file_list_out[-1]
+
+        #preaparing a list of all files to convert
+        file_list_in = self.lineedit_File_in_Path.text().rstrip('" ').lstrip('" ').split('" "')
+        file_list_out = self.lineedit_File_out_Path.text().rstrip('" ').lstrip('" ').split('" "')
 
         if file_list_in == ['']:
             QtGui.QMessageBox.warning(self, self.tr('Error'), self.tr('No File Selected!'))
@@ -53,7 +51,7 @@ class MainWindow(QtGui.QMainWindow):
                                                                     file_list_out[file])
                             else:
                                 self.lineedit_File_out_Path.setText(self.lineedit_File_out_Path.text() +
-                                                                    "; " + file_list_out[file])
+                                                                    ' "' + file_list_out[file]) + '"'
                 else:
                     file_list_out[0] = file_list_in[0].rstrip('schematic') + 'java'
                     self.lineedit_File_out_Path.setText(file_list_in[0])
@@ -62,14 +60,18 @@ class MainWindow(QtGui.QMainWindow):
             self.done()
 
     def filedialogin(self):
-        file = QtGui.QFileDialog.getOpenFileName(self, u"Open File", QtGui.QDesktopServices.storageLocation(
+        file = QtGui.QFileDialog.getOpenFileNames(self, u"Open File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
-        if file[0] != '':
-            self.lineedit_File_in_Path.setText(file[0])
+        if file[0]:
+            filestring = ''
+            for paths in file[0]:
+                filestring = filestring + '"' + paths + '" '
+            self.lineedit_File_in_Path.setText(filestring)
             if self.lineedit_File_out_Path.text() == '':
-                file2 = file[0]
-                file2 = file2.rstrip('schematic') + 'java'
-                self.lineedit_File_out_Path.setText(file2)
+                path = ''
+                for paths in file[0]:
+                    path = path + '"' + paths.rstrip('schematic') + 'java' + '" '
+                self.lineedit_File_out_Path.setText(path)
 
     def activate_checkbox_1(self):
         if (self.checkbox_rotation_2.isChecked() or self.checkbox_rotation_3.isChecked() or
@@ -82,7 +84,7 @@ class MainWindow(QtGui.QMainWindow):
     def filedialogout(self):
         file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Java (*.java)')
-        if file[0] != '':
+        if file[0]:
             self.lineedit_File_out_Path.setText(file[0])
 
     def createconnects(self):

@@ -283,7 +283,7 @@ class dialog_custom_Block_save(QtGui.QDialog):
         file = QtGui.QFileDialog.getSaveFileName(self, 'Save Custom Block Set',
                                                  os.path.dirname(os.path.realpath(__file__)) + '/customblocksets',
                                                  'Custom Block Set (*.cbs)')
-        if file[0] != '':
+        if file[0]:
             save_file = open(file[0], 'wb')
             pickle.dump(self.names, save_file)
             pickle.dump(self.ids, save_file)
@@ -297,7 +297,7 @@ class dialog_custom_Block_save(QtGui.QDialog):
         file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set',
                                                  os.path.dirname(os.path.realpath(__file__)) + '/customblocksets',
                                                  'Custom Block Set (*.cbs)')
-        if file[0] != '':
+        if file[0]:
             save_file = open(file[0], 'rb')
             names_saved = []
             ids_saved = []
@@ -455,7 +455,7 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         file = QtGui.QFileDialog.getOpenFileName(self, 'Add to Custom Block Set',
                                                  os.path.dirname(os.path.realpath(__file__)),
                                                  'Custom Block Set (*.cbs)')
-        if file[0] != '':
+        if file[0]:
             self.combobox_sets.insertItem(0, 'Custom File')
             self.combobox_sets.setCurrentIndex(0)
             self.customFile = file[0]
@@ -505,7 +505,7 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         file = QtGui.QFileDialog.getSaveFileName(self, u"New Custom Block Set",
                                                  os.path.dirname(os.path.realpath(__file__)) +
                                                  '/customblocksets/', 'Custom Block Set (*.cbs)')
-        if file[0] != '':
+        if file[0]:
             if os.path.samefile(os.path.realpath(os.path.dirname(file[0])),
                                 os.path.dirname(os.path.realpath(__file__)) +
                                         '\\customblocksets'):
