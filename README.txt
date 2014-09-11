@@ -4,7 +4,7 @@ JaJo_11's Structure to Java Converter
 
 How do I use this program?
 
-Download the program from http://www.minecraftforum.net/topic/2645833-jajo-11s-schematic-to-structure-converter/ and extract it run Schematic_to_Java_Python_3.exe ignore the MainWindow.exe it is required for the program but doesn't do anything when you execute it.
+Download the program from http://www.minecraftforum.net/topic/2645833-jajo-11s-schematic-to-structure-converter/ and extract it run Schematic_to_Java_Python_3.exe ignore the MainWindow.exe it is required for the program but doesn't do anything when you execute it (exists only in older versions of the program.).
 
 What does this program do?
 
