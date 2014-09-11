@@ -7,7 +7,7 @@ from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
 
-DEBUGGING = True
+DEBUGGING = False
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -18,6 +18,8 @@ class MainWindow(QtGui.QMainWindow):
         self.height = 0
         self.width = 0
         self.length = 0
+        # actually its file x of x files in a format like this (1/10) as string for the progressbar text
+        self.number_of_files = '(x/x)'
 
         QtGui.QMainWindow.__init__(self, *args)
         self.setWindowIcon(QtGui.QIcon('logo.png'))
@@ -55,7 +57,12 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     file_list_out[0] = file_list_in[0].rstrip('schematic') + 'java'
                     self.lineedit_File_out_Path.setText(file_list_in[0])
+            self.button_Start.setVisible(False)
+            self.progressbar_main.setVisible(True)
+            self.progressbar_main.setMaximum(len(file_list_in) * 100)
+            self.progressbar_main.setValue(0)
             for file in range(0, len(file_list_in)):
+                self.number_of_files = '(' + str(file + 1) + '/' + str(len(file_list_in)) + ')'
                 self.convert(file_list_in[file], file_list_out[file])
             self.done()
 
@@ -101,8 +108,10 @@ class MainWindow(QtGui.QMainWindow):
         self.lineedit_File_out_Path.editingFinished.connect(self.enable_options)
 
     def done(self):
-        debug_print("Done! ;)")
+        debug_print("Done with everything! ;)")
         QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
+        self.progressbar_main.setVisible(False)
+        self.button_Start.setVisible(True)
 
     def noschematic(self):
         QtGui.QMessageBox.warning(self, self.tr('Error'),
@@ -210,7 +219,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # rotation
         rotations = []  # list contains checked rotations
-        rotationscount = 0  # counts the total items in rotations[]
+        rotations_count = 0  # counts the total items in rotations[]
         blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34,
                             69]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
@@ -247,6 +256,10 @@ class MainWindow(QtGui.QMainWindow):
 
         if file_in.read(12) == bytearray.fromhex('0A0009536368656D61746963'):
             debug_print("It's a schematic!")
+            self.progressbar_main.setFormat('Reading File (%p%) ' + self.number_of_files)
+            debug_print(self.progressbar_main.value())
+            self.progressbar_main.setValue(self.progressbar_main.value() + 1)
+
             while True:
 
                 if tag_container[-1][0] != 0:
@@ -270,10 +283,13 @@ class MainWindow(QtGui.QMainWindow):
                     debug_print(number)
                     if name == 'Height':
                         self.height = number
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 1)
                     elif name == 'Length':
                         self.length = number
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 1)
                     elif name == 'Width':
                         self.width = number
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 1)
                 # TAG_Int
                 elif tag == bytearray.fromhex('03'):
                     self.read_tag_name('Int', tag_container[-1][0])
@@ -296,8 +312,10 @@ class MainWindow(QtGui.QMainWindow):
                     array_length = int.from_bytes(file_in.read(4), 'big')
                     if name == 'Blocks':
                         block_list = bytearray(file_in.read(array_length))
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 3)
                     elif name == 'Data':
                         meta_data_list = bytearray(file_in.read(array_length))
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 3)
                     else:
                         file_in.read(array_length)
                     debug_print('Won\'t print Byte Array')
@@ -338,6 +356,7 @@ class MainWindow(QtGui.QMainWindow):
             debug_print(self.length)
             debug_print(self.width)
             debug_print('Writing file')
+            self.progressbar_main.setFormat('Writing File (%p%) ' + self.number_of_files)
 
             file_out.write(
                 '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING' +
@@ -357,6 +376,8 @@ class MainWindow(QtGui.QMainWindow):
             for block in self.generate_on:
                 file_out.write('			' + block + ',\n')
 
+            self.progressbar_main.setValue(self.progressbar_main.value() + 1)
+
             if self.checkbox_rotation_1.isChecked():
                 rotations.append('generate_r0')
             if self.checkbox_rotation_2.isChecked():
@@ -365,7 +386,7 @@ class MainWindow(QtGui.QMainWindow):
                 rotations.append('generate_r2')
             if self.checkbox_rotation_4.isChecked():
                 rotations.append('generate_r3')
-            rotationscount = len(rotations)
+            rotations_count = len(rotations)
 
             file_out.write('		};\n	}\n\n' +
                            '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n' +
@@ -387,10 +408,10 @@ class MainWindow(QtGui.QMainWindow):
                            '			{\n				return true;\n			}\n		}\n' +
                            '		return false;\n	}\n\n' +
                            '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +
-                           '	{\n		int i = rand.nextInt(' + str(rotationscount) + ');\n\n')
+                           '	{\n		int i = rand.nextInt(' + str(rotations_count) + ');\n\n')
 
             # generates code for random decision of the rotation
-            for i in range(0, rotationscount):
+            for i in range(0, rotations_count):
                 file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
                     i] + '(world, rand, x, y, z);\n		}\n\n')
             file_out.write('       return true;\n\n	}\n\n')
@@ -401,14 +422,16 @@ class MainWindow(QtGui.QMainWindow):
                 # same as obove only that this one is alredy called with a certain rotation disabeld by default
                 file_out.write(
                     '	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n')
-                for i in range(0, rotationscount):
+                for i in range(0, rotations_count):
                     file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
                         i] + '(world, rand, x, y, z);\n		}\n\n')
                 file_out.write('       return true;\n\n	}\n\n')
 
                 # creates funcion for geting the count of rotations disabeld by default
                 file_out.write(
-                    '	public int getrotations()\n	{\n\n		return ' + str(rotationscount) + ';\n\n    }\n\n')
+                    '	public int getrotations()\n	{\n\n		return ' + str(rotations_count) + ';\n\n    }\n\n')
+
+            self.progressbar_main.setValue(self.progressbar_main.value() + 4)
 
             # generates the code witch checks fore valid spawn locations
             for rotations in rotations:
@@ -492,6 +515,7 @@ class MainWindow(QtGui.QMainWindow):
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
                                         z) + ') ||\n')
+
 
                 for i in range(0, size):
 
@@ -658,6 +682,14 @@ class MainWindow(QtGui.QMainWindow):
                             file_out.write(j)
                         blocks_placed_last.clear()
 
+                    if size < 80:
+                        self.progressbar_main.setValue(self.progressbar_main.value() + 80 // size)
+                        if i == size - 1:
+                            self.progressbar_main.setValue(self.progressbar_main.value() + 80 % size)
+                    else:
+                        if i % (size // 80) == 0 and i != 0:
+                            self.progressbar_main.setValue(self.progressbar_main.value() + 1)
+
                 file_out.write('		return true;\n\n	}\n')
 
             file_out.write('\n}')
@@ -681,6 +713,8 @@ class MainWindow(QtGui.QMainWindow):
                 file_out.seek(0)
                 file_out.writelines(file_out_rew)
             debug_print('Done! ;)')
+            self.progressbar_main.setFormat('Done (%p%) ' + self.number_of_files)
+            self.progressbar_main.setValue(self.progressbar_main.value() + 5)
             save_package(self)
             if new_custom_block is True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)

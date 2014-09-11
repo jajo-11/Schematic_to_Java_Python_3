@@ -33,6 +33,7 @@ def components(self):
     self.checkbox_rotation_4 = QtGui.QCheckBox(self.tr('Rotation by 270 degrees'))
 
     self.button_Start = QtGui.QPushButton(self.tr('Start'))
+    self.progressbar_main = QtGui.QProgressBar()
 
 
 def layout(self):
@@ -75,6 +76,7 @@ def layout(self):
     layoutzentral.addWidget(self.group_options, 9, 0, 1, 2)
     layoutzentral.addWidget(self.group_rotation, 9, 2, 1, 4)
     layoutzentral.addWidget(self.button_Start, 10, 0, 1, 6)
+    layoutzentral.addWidget(self.progressbar_main, 10, 0, 1, 6)
 
     widgetzentral.setLayout(layoutzentral)
     self.setCentralWidget(widgetzentral)
@@ -118,6 +120,7 @@ def tooltipsinit(self):
         'If checked the Structure will be spawn rotated by 270 degrees.\nIf you select multiple rotations the' +
         ' rotation will be decided randomly every time the structure is generated,\nwhich rotation to choose.'))
     self.button_Start.setToolTip(self.tr('Starts the converting process.'))
+    self.progressbar_main.setToolTip(self.tr('Shows the progress of the conversion of the current file.'))
     self.setToolTip(
         self.tr('Schematic to Java Structure by jajo_11 inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"'))
 
@@ -181,6 +184,8 @@ def preinit(self):
     self.checkbox_rotation_1.setDisabled(True)
     self.checkbox_rotation_1.setChecked(True)
     self.button_manage_cl.setDisabled(True)
+    self.progressbar_main.setVisible(False)
+    self.progressbar_main.setAlignment(QtCore.Qt.AlignCenter)
 
 
 def save_package(self):
