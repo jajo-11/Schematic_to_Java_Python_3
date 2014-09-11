@@ -17,6 +17,7 @@ You can get the source from the portal post! (<- ignore this if you are on GitHu
 
 Problems witch could appear:
 
+Newer versions actually support .schematics with modded blocks if you still run into problems follow the istructions below.
 The program does not support .schematics with modded blocks try to replace them with vanilla blocks first and then use search and replace on the outputted file to make them modded blocks again.
 
 I have a problem with your program. Where I can get help?
