@@ -27,7 +27,8 @@ def rotate_meta_data(rotation, block, meta_data):
         elif rotation == 'generate_r3':
             meta_data_list = [2, 3, 1, 0, 6, 7, 5, 4]
             meta_data = meta_data_list[meta_data]
-    elif block in ['piston', 'sticky_piston', 'piston_head']:
+
+    elif block in ['piston', 'sticky_piston', 'piston_head', 'dispenser']:
         if rotation == 'generate_r1':
             meta_data_list = [0, 1, 4, 5, 3, 2, 6, 7, 8, 9, 12, 13, 11, 10, 14, 15]
             meta_data = meta_data_list[meta_data]
@@ -37,7 +38,8 @@ def rotate_meta_data(rotation, block, meta_data):
         if rotation == 'generate_r3':
             meta_data_list = [0, 1, 5, 4, 2, 3, 6, 7, 8, 9, 13, 12, 10, 11, 14, 15]
             meta_data = meta_data_list[meta_data]
-    elif block == 'lever':
+
+    elif block in ['lever', 'stone_button', 'wooden_button']:
         if rotation == 'generate_r1':
             meta_data_list = [0, 4, 3, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             meta_data = meta_data_list[meta_data]
@@ -46,6 +48,28 @@ def rotate_meta_data(rotation, block, meta_data):
             meta_data = meta_data_list[meta_data]
         elif rotation == 'generate_r3':
             meta_data_list = [0, 3, 4, 2, 1, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            meta_data = meta_data_list[meta_data]
+
+    elif block == 'standing_sign':
+        if rotation == 'generate_r1':
+            meta_data_list = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r2':
+            meta_data_list = [8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r3':
+            meta_data_list = [12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1]
+            meta_data = meta_data_list[meta_data]
+
+    elif block == 'wall_sign':
+        if rotation == 'generate_r1':
+            meta_data_list = [0, 5, 0, 4, 2, 3]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r2':
+            meta_data_list = [0, 3, 0, 2, 5, 4]
+            meta_data = meta_data_list[meta_data]
+        elif rotation == 'generate_r3':
+            meta_data_list = [0, 4, 0, 5, 3, 2]
             meta_data = meta_data_list[meta_data]
 
     return meta_data

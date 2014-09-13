@@ -221,7 +221,7 @@ class MainWindow(QtGui.QMainWindow):
         rotations = []  # list contains checked rotations
         rotations_count = 0  # counts the total items in rotations[]
         blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34,
-                            69]
+                            69, 77, 143, 63, 68, 23]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         # custom blocks
