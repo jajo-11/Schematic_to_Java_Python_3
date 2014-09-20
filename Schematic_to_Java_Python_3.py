@@ -221,7 +221,7 @@ class MainWindow(QtGui.QMainWindow):
         rotations = []  # list contains checked rotations
         rotations_count = 0  # counts the total items in rotations[]
         blocks_to_rotate = [50, 75, 76, 17, 53, 67, 108, 109, 114, 128, 134, 135, 136, 156, 163, 162, 164, 29, 33, 34,
-                            69, 77, 143, 63, 68, 23]
+                            69, 77, 143, 63, 68, 23, 170]
         meta_data_rotated = None  # Contains the last metadata rotated by metadata
 
         # custom blocks
@@ -390,14 +390,9 @@ class MainWindow(QtGui.QMainWindow):
 
             file_out.write('		};\n	}\n\n' +
                            '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n' +
-                           '	{\n		int distanceToAir = 0;\n' +
-                           '		Block checkBlock = world.getBlock(x, y, z);\n\n' +
-                           '		while (checkBlock != Blocks.air)\n		{\n			distanceToAir++;\n' +
-                           '			checkBlock = world.getBlock(x, y + distanceToAir, z);\n		}\n\n' +
-                           '		if (distanceToAir > 1)\n		{\n			return false;\n		}\n\n' +
-                           '		y += distanceToAir - 1;\n\n		Block block = world.getBlock(x, y, z);\n' +
-                           '		Block blockAbove = world.getBlock(x, y + 1, z);\n' +
-                           '		Block blockBelow = world.getBlock(x, y - 1, z);\n\n' +
+                           '\n		Block checkBlock = world.getBlock(x, y - 1, z);\n' +
+                           '		Block blockAbove = world.getBlock(x, y , z);\n' +
+                           '		Block blockBelow = world.getBlock(x, y - 2, z);\n\n' +
                            '		for (Block i : GetValidSpawnBlocks())\n		{\n' +
                            '			if (blockAbove != Blocks.air)\n			{\n' +
                            '				return false;\n			}\n' +

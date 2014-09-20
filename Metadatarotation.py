@@ -10,7 +10,7 @@ def rotate_meta_data(rotation, block, meta_data):
             meta_data_list = [0, 3, 4, 2, 1]
             meta_data = meta_data_list[meta_data]
 
-    elif block == 'log' or block == 'log2':
+    elif block in ['log', 'log2', 'hay_block']:
         if rotation == 'generate_r1' or rotation == 'generate_r3':
             meta_data_list = [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]
             meta_data = meta_data_list[meta_data]
