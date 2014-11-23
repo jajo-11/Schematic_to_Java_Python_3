@@ -25,6 +25,7 @@ def components(self):
     self.checkbox_Generate_Air = QtGui.QCheckBox(self.tr('Do not generate Air'))
     self.button_manage_cbs = QtGui.QPushButton(self.tr('Custom Block Sets'))
     self.button_manage_cl = QtGui.QPushButton(self.tr('Chest Loot'))
+    self.button_more_options = QtGui.QPushButton(self.tr('More Options'))
 
     self.group_rotation = QtGui.QGroupBox(self.tr('Rotaton'))
     self.checkbox_rotation_1 = QtGui.QCheckBox(self.tr('Default Rotation'))
@@ -39,13 +40,14 @@ def components(self):
 def layout(self):
     layoutgroupoptions = QtGui.QGridLayout()
 
-    layoutgroupoptions.addWidget(self.checkbox_Generate_Air, 0, 0, 1, 1)
-    layoutgroupoptions.addWidget(self.label_check_points, 1, 0, 1, 2)
-    layoutgroupoptions.addWidget(self.combobox_check_points, 2, 0, 1, 2)
-    layoutgroupoptions.addWidget(self.label_offset, 3, 0, 1, 1)
-    layoutgroupoptions.addWidget(self.spinbox_offset, 3, 1, 1, 1)
-    layoutgroupoptions.addWidget(self.button_manage_cbs, 4, 0, 1, 1)
-    layoutgroupoptions.addWidget(self.button_manage_cl, 4, 1, 1, 1)
+    layoutgroupoptions.addWidget(self.label_check_points, 0, 0, 1, 2)
+    layoutgroupoptions.addWidget(self.combobox_check_points, 1, 0, 1, 2)
+    layoutgroupoptions.addWidget(self.label_offset, 2, 0, 1, 1)
+    layoutgroupoptions.addWidget(self.spinbox_offset, 2, 1, 1, 1)
+    layoutgroupoptions.addWidget(self.button_manage_cbs, 3, 0, 1, 1)
+    layoutgroupoptions.addWidget(self.button_manage_cl, 3, 1, 1, 1)
+    layoutgroupoptions.addWidget(self.checkbox_Generate_Air, 4, 0, 1, 1)
+    layoutgroupoptions.addWidget(self.button_more_options, 4, 1, 1, 1)
 
     self.group_options.setLayout(layoutgroupoptions)
 
@@ -107,6 +109,7 @@ def tooltipsinit(self):
         self.tr('Set a height offset for your structure to make it fly or sink into the ground'))
     self.button_manage_cbs.setToolTip(self.tr('Opens a window where you can manage your custom block sets.'))
     self.button_manage_cl.setToolTip(self.tr('Opens a window where you can manage your random chest loot.'))
+    self.button_more_options.setToolTip(self.tr('Opens a dialog to set things like a maximum file size.'))
     self.checkbox_rotation_1.setToolTip(self.tr(
         'If checked the Structure will be spawn unrotated.\nIf you select multiple rotations the rotation will be' +
         ' decided randomly every time the structure is generated,\nwhich rotation to choose.'))
@@ -323,7 +326,8 @@ class dialog_custom_Block_save(QtGui.QDialog):
                             ids_saved.index(entry)] + '\"'))
                     overwrite_Dialog.setInformativeText(self.tr('Do you want to overwrite it?'))
                     overwrite_Dialog.setStandardButtons(
-                        QtGui.QMessageBox.No | QtGui.QMessageBox.NoAll | QtGui.QMessageBox.YesAll | QtGui.QMessageBox.Yes)
+                        QtGui.QMessageBox.No | QtGui.QMessageBox.NoAll | QtGui.QMessageBox.YesAll |
+                        QtGui.QMessageBox.Yes)
                     overwrite_Dialog.setDefaultButton(QtGui.QMessageBox.Yes)
                     overwrite_Dialog.setEscapeButton(QtGui.QMessageBox.No)
                     overwrite_Dialog.setIcon(QtGui.QMessageBox.Question)
@@ -543,3 +547,79 @@ class dialog_custom_Block_manage(QtGui.QDialog):
             return [True, self.combobox_sets.currentText() + '.cbs']  # True means its in /customblocksets/
         elif self.combobox_sets.currentText():
             return [False, self.customFile]  # False means its not in /customblocksets/
+
+class dialog_options(QtGui.QDialog):
+    def __init__(self, *args):
+        QtGui.QDialog.__init__(self, *args)
+        self.components()
+        self.layout()
+        self.preinit()
+        self.tooltipsinit()
+        self.createConnects()
+        self.setWindowTitle(self.tr('More Options'))
+
+    def components(self):
+        self.Group_genneral = QtGui.QGroupBox(self.tr('General'))
+        self.Label_Mc_version = QtGui.QLabel(self.tr('Targeted Minecraft Version:'))
+        self.ComboBox_Mc_version = QtGui.QComboBox()
+        self.Checkbox_additional_functions = QtGui.QCheckBox(self.tr('Generate additional functions'))
+
+        self.Group_split_files = QtGui.QGroupBox(self.tr('File Splitting'))
+        self.Button_Done = QtGui.QPushButton(self.tr('Done'))
+        self.Button_Cancel = QtGui.QPushButton(self.tr('Cancel'))
+        self.Label_Max_File_size = QtGui.QLabel(self.tr('Maximal blocks per file:'))
+        self.Spinbox_Max_File_size = QtGui.QSpinBox()
+        self.Label_File_name_format = QtGui.QLabel(self.tr('File name format:'))
+        self.ComboBox_File_name_format = QtGui.QComboBox()
+
+    def layout(self):
+        layoutgroup_general = QtGui.QVBoxLayout()
+
+        layoutgroup_general.addWidget(self.Label_Mc_version)
+        layoutgroup_general.addWidget(self.ComboBox_Mc_version)
+        layoutgroup_general.addWidget(self.Checkbox_additional_functions)
+
+        self.Group_genneral.setLayout(layoutgroup_general)
+
+        layoutgroup_split_files = QtGui.QGridLayout()
+
+        layoutgroup_split_files.addWidget(self.Label_Max_File_size, 0, 0)
+        layoutgroup_split_files.addWidget(self.Spinbox_Max_File_size, 0, 1)
+        layoutgroup_split_files.addWidget(self.Label_File_name_format, 1, 0)
+        layoutgroup_split_files.addWidget(self.ComboBox_File_name_format, 1, 1)
+
+        self.Group_split_files.setLayout(layoutgroup_split_files)
+
+        layoutzentral = QtGui.QGridLayout()
+
+        layoutzentral.addWidget(self.Group_genneral, 0, 0, 1, 2)
+        layoutzentral.addWidget(self.Group_split_files, 1, 0, 1, 2)
+        layoutzentral.addWidget(self.Button_Done, 2, 0)
+        layoutzentral.addWidget(self.Button_Cancel, 2, 1)
+
+        self.setLayout(layoutzentral)
+
+    def preinit(self):
+        self.ComboBox_Mc_version.addItems(['1.7.x'])
+        self.Spinbox_Max_File_size.setRange(100, 10000)
+        self.Spinbox_Max_File_size.setSingleStep(100)
+        self.Spinbox_Max_File_size.setValue(1000)
+        self.ComboBox_File_name_format.addItems(['000Filename', '000_Filename', '000.Filename', 'Filename000',
+                                                 'Filename_000', 'Filename.000'])
+        self.ComboBox_File_name_format.setCurrentIndex(1)
+
+    def tooltipsinit(self):
+        self.Spinbox_Max_File_size.setToolTip(self.tr('The number of "setBlock" lines before starting a new File.'))
+        self.ComboBox_File_name_format.setToolTip(self.tr('This sets how your file will be named in case of it' +
+                                                          ' exceeding the limit above.'))
+
+    def createConnects(self):
+        self.Button_Done.clicked.connect(self.accept)
+        self.Button_Cancel.clicked.connect(self.reject)
+
+    @property
+    def result(self):
+        return self.ComboBox_Mc_version.currentText(),\
+               self.Checkbox_additional_functions.isChecked(),\
+               self.Spinbox_Max_File_size.value(),\
+               self.ComboBox_File_name_format.currentText()

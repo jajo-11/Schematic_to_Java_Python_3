@@ -6,14 +6,13 @@ import sys
 from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
-
 DEBUGGING = False
 
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, *args):
         self.generate_on = []
-        self.options = False
+        self.additional_functions = False
         self.cbs_file = None
         self.height = 0
         self.width = 0
@@ -32,7 +31,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def convertchecker(self):
 
-        #preaparing a list of all files to convert
+        # preaparing a list of all files to convert
         file_list_in = self.lineedit_File_in_Path.text().rstrip('" ').lstrip('" ').split('" "')
         file_list_out = self.lineedit_File_out_Path.text().rstrip('" ').lstrip('" ').split('" "')
 
@@ -101,6 +100,7 @@ class MainWindow(QtGui.QMainWindow):
         self.button_remove_block.clicked.connect(self.remove_from_list)
         self.button_Start.clicked.connect(self.convertchecker)
         self.button_manage_cbs.clicked.connect(self.open_manage_cbs)
+        self.button_more_options.clicked.connect(self.more_options)
         self.checkbox_rotation_1.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_2.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_3.stateChanged.connect(self.activate_checkbox_1)
@@ -127,16 +127,17 @@ class MainWindow(QtGui.QMainWindow):
             self.generate_on.remove(self.list_Generate_on.currentItem().text())
         self.list_Generate_on.takeItem(self.list_Generate_on.currentRow())
 
-    def enable_options(self):
-        if self.lineedit_File_out_Path.text() == 'options':
-            debug_print('Options enabled')
-            self.options = True
-            self.lineedit_File_out_Path.setText('')
-
     def open_manage_cbs(self):
         dialog = dialog_custom_Block_manage(self)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             self.cbs_file = dialog.selected
+
+    def more_options(self):
+        dialog = dialog_options(self)
+        result = dialog.exec()
+        if result == QtGui.QDialog.Accepted:
+            print(dialog.result)
+            self.additional_functions = dialog.result[1]
 
     def read_tag_name(self, tag_type, tag_container):
         if tag_container == 0:
@@ -401,20 +402,23 @@ class MainWindow(QtGui.QMainWindow):
                            '			{\n				return true;\n			}\n' +
                            '			else if (block.getMaterial() == Material.plants && blockBelow == i)\n' +
                            '			{\n				return true;\n			}\n		}\n' +
-                           '		return false;\n	}\n\n' +
-                           '	public boolean generate(World world, Random rand, int x, int y, int z)\n' +
-                           '	{\n		int i = rand.nextInt(' + str(rotations_count) + ');\n\n')
+                           '		return false;\n	}\n\n')
 
-            # generates code for random decision of the rotation
-            for i in range(0, rotations_count):
-                file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
-                    i] + '(world, rand, x, y, z);\n		}\n\n')
+            if rotations_count == 1:
+                pass
+            else:
+                # generates code for random decision of the rotation
+                file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z)\n' +
+                               '	{\n		int i = rand.nextInt(' + str(rotations_count) + ');\n\n')
+                for i in range(0, rotations_count):
+                    file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
+                        i] + '(world, rand, x, y, z);\n		}\n\n')
             file_out.write('       return true;\n\n	}\n\n')
 
             # checks for advanced options
-            if self.options:
+            if self.additional_functions:
 
-                # same as obove only that this one is alredy called with a certain rotation disabeld by default
+                # same as above only that this one is already called with a certain rotation disabled by default
                 file_out.write(
                     '	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n')
                 for i in range(0, rotations_count):
@@ -422,7 +426,7 @@ class MainWindow(QtGui.QMainWindow):
                         i] + '(world, rand, x, y, z);\n		}\n\n')
                 file_out.write('       return true;\n\n	}\n\n')
 
-                # creates funcion for geting the count of rotations disabeld by default
+                # creates function for getting the count of rotations disabled by default
                 file_out.write(
                     '	public int getrotations()\n	{\n\n		return ' + str(rotations_count) + ';\n\n    }\n\n')
 
@@ -510,7 +514,6 @@ class MainWindow(QtGui.QMainWindow):
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
                                         z) + ') ||\n')
-
 
                 for i in range(0, size):
 
