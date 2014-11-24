@@ -1,16 +1,5 @@
 def rotate_meta_data(rotation, block, meta_data):
-    if block in ['torch', 'unlit_redstone_torch', 'redstone_torch'] and meta_data in range(0, 5):
-        if rotation == 'generate_r1':
-            meta_data_list = [0, 4, 3, 1, 2]
-            meta_data = meta_data_list[meta_data]
-        elif rotation == 'generate_r2':
-            meta_data_list = [0, 2, 1, 4, 3]
-            meta_data = meta_data_list[meta_data]
-        elif rotation == 'generate_r3':
-            meta_data_list = [0, 3, 4, 2, 1]
-            meta_data = meta_data_list[meta_data]
-
-    elif block in ['log', 'log2', 'hay_block']:
+    if block in ['log', 'log2', 'hay_block']:
         if rotation == 'generate_r1' or rotation == 'generate_r3':
             meta_data_list = [0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15]
             meta_data = meta_data_list[meta_data]
@@ -39,7 +28,7 @@ def rotate_meta_data(rotation, block, meta_data):
             meta_data_list = [0, 1, 5, 4, 2, 3, 6, 7, 8, 9, 13, 12, 10, 11, 14, 15]
             meta_data = meta_data_list[meta_data]
 
-    elif block in ['lever', 'stone_button', 'wooden_button']:
+    elif block in ['lever', 'stone_button', 'wooden_button', 'torch', 'unlit_redstone_torch', 'redstone_torch']:
         if rotation == 'generate_r1':
             meta_data_list = [0, 4, 3, 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             meta_data = meta_data_list[meta_data]

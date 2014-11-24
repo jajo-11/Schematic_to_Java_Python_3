@@ -105,7 +105,6 @@ class MainWindow(QtGui.QMainWindow):
         self.checkbox_rotation_2.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_3.stateChanged.connect(self.activate_checkbox_1)
         self.checkbox_rotation_4.stateChanged.connect(self.activate_checkbox_1)
-        self.lineedit_File_out_Path.editingFinished.connect(self.enable_options)
 
     def done(self):
         debug_print("Done with everything! ;)")
