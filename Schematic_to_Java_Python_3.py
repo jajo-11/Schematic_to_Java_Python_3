@@ -6,20 +6,24 @@ import sys
 from MainWindow import *
 from Metadatarotation import rotate_meta_data
 
-DEBUGGING = False
+DEBUGGING = True
 
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, *args):
+
         self.generate_on = []
-        self.additional_functions = False
         self.cbs_file = None
+
         self.height = 0
         self.width = 0
         self.length = 0
+
+        self.getTopSolidOrLiquidBlock = False
         self.max_file_length = 1000
         self.file_name_format = '000_Filename'
         self.mcVersion = '1.7.x'
+
         # actually its file x of x files in a format like this (1/10) as string for the progressbar text
         self.number_of_files = '(x/x)'
 
@@ -31,6 +35,76 @@ class MainWindow(QtGui.QMainWindow):
         preinit(self)
         self.createconnects()
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
+
+    def createconnects(self):
+        self.button_File_in.clicked.connect(self.filedialogin)
+        self.button_File_out.clicked.connect(self.filedialogout)
+        self.button_add_block.clicked.connect(self.add_to_list)
+        self.button_remove_block.clicked.connect(self.remove_from_list)
+        self.button_Start.clicked.connect(self.convertchecker)
+        self.button_manage_cbs.clicked.connect(self.open_manage_cbs)
+        self.button_more_options.clicked.connect(self.more_options)
+        self.checkbox_rotation_1.stateChanged.connect(self.activate_checkbox_1)
+        self.checkbox_rotation_2.stateChanged.connect(self.activate_checkbox_1)
+        self.checkbox_rotation_3.stateChanged.connect(self.activate_checkbox_1)
+        self.checkbox_rotation_4.stateChanged.connect(self.activate_checkbox_1)
+
+    def activate_checkbox_1(self):
+        if (self.checkbox_rotation_2.isChecked() or self.checkbox_rotation_3.isChecked() or
+                self.checkbox_rotation_4.isChecked()):
+            self.checkbox_rotation_1.setDisabled(False)
+        else:
+            self.checkbox_rotation_1.setDisabled(True)
+            self.checkbox_rotation_1.setChecked(True)
+
+    def filedialogin(self):
+        file = QtGui.QFileDialog.getOpenFileNames(self, u"Open File", QtGui.QDesktopServices.storageLocation(
+            QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
+        if file[0]:
+            filestring = ''
+            for paths in file[0]:
+                filestring = filestring + '"' + paths + '" '
+            self.lineedit_File_in_Path.setText(filestring)
+            if self.lineedit_File_out_Path.text() == '':
+                path = ''
+                for paths in file[0]:
+                    path = path + '"' + paths.rstrip('schematic') + 'java' + '" '
+                self.lineedit_File_out_Path.setText(path)
+
+    def filedialogout(self):
+        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(
+            QtGui.QDesktopServices.DesktopLocation), 'Java (*.java)')
+        if file[0]:
+            self.lineedit_File_out_Path.setText(file[0])
+
+    def add_to_list(self):
+        if self.combobox_Generate_on.currentText() not in self.generate_on:
+            self.list_Generate_on.addItem(self.combobox_Generate_on.currentText())
+            self.generate_on.append(self.combobox_Generate_on.currentText())
+
+    def remove_from_list(self):
+        if self.list_Generate_on.currentItem() is not None:
+            self.generate_on.remove(self.list_Generate_on.currentItem().text())
+        self.list_Generate_on.takeItem(self.list_Generate_on.currentRow())
+
+    def open_manage_cbs(self):
+        dialog = dialog_custom_Block_manage(self)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            self.cbs_file = dialog.selected
+
+    def more_options(self):
+        dialog = dialog_options(self)
+        dialog.mcVersion = self.mcVersion
+        dialog.getTopSolidOrLiquidBlock = self.getTopSolidOrLiquidBlock
+        dialog.max_file_length = self.max_file_length
+        dialog.file_name_format = self.file_name_format
+        result = dialog.exec()
+        if result == QtGui.QDialog.Accepted:
+            debug_print(dialog.result)
+            self.mcVersion = dialog.mcVersion
+            self.getTopSolidOrLiquidBlock = dialog.getTopSolidOrLiquidBlock
+            self.max_file_length = dialog.max_file_length
+            self.file_name_format = dialog.file_name_format
 
     def convertchecker(self):
 
@@ -67,89 +141,6 @@ class MainWindow(QtGui.QMainWindow):
                 self.number_of_files = '(' + str(file + 1) + '/' + str(len(file_list_in)) + ')'
                 self.convert(file_list_in[file], file_list_out[file])
             self.done()
-
-    def filedialogin(self):
-        file = QtGui.QFileDialog.getOpenFileNames(self, u"Open File", QtGui.QDesktopServices.storageLocation(
-            QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
-        if file[0]:
-            filestring = ''
-            for paths in file[0]:
-                filestring = filestring + '"' + paths + '" '
-            self.lineedit_File_in_Path.setText(filestring)
-            if self.lineedit_File_out_Path.text() == '':
-                path = ''
-                for paths in file[0]:
-                    path = path + '"' + paths.rstrip('schematic') + 'java' + '" '
-                self.lineedit_File_out_Path.setText(path)
-
-    def activate_checkbox_1(self):
-        if (self.checkbox_rotation_2.isChecked() or self.checkbox_rotation_3.isChecked() or
-                self.checkbox_rotation_4.isChecked()):
-            self.checkbox_rotation_1.setDisabled(False)
-        else:
-            self.checkbox_rotation_1.setDisabled(True)
-            self.checkbox_rotation_1.setChecked(True)
-
-    def filedialogout(self):
-        file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(
-            QtGui.QDesktopServices.DesktopLocation), 'Java (*.java)')
-        if file[0]:
-            self.lineedit_File_out_Path.setText(file[0])
-
-    def createconnects(self):
-        self.button_File_in.clicked.connect(self.filedialogin)
-        self.button_File_out.clicked.connect(self.filedialogout)
-        self.button_add_block.clicked.connect(self.add_to_list)
-        self.button_remove_block.clicked.connect(self.remove_from_list)
-        self.button_Start.clicked.connect(self.convertchecker)
-        self.button_manage_cbs.clicked.connect(self.open_manage_cbs)
-        self.button_more_options.clicked.connect(self.more_options)
-        self.checkbox_rotation_1.stateChanged.connect(self.activate_checkbox_1)
-        self.checkbox_rotation_2.stateChanged.connect(self.activate_checkbox_1)
-        self.checkbox_rotation_3.stateChanged.connect(self.activate_checkbox_1)
-        self.checkbox_rotation_4.stateChanged.connect(self.activate_checkbox_1)
-
-    def done(self):
-        debug_print("Done with everything! ;)")
-        QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
-        self.progressbar_main.setVisible(False)
-        self.button_Start.setVisible(True)
-
-    def noschematic(self):
-        QtGui.QMessageBox.warning(self, self.tr('Error'),
-                                  self.tr('The selected File dose not appear to be a Schematic! \n We are Sorry :('))
-
-    def add_to_list(self):
-        if self.combobox_Generate_on.currentText() not in self.generate_on:
-            self.list_Generate_on.addItem(self.combobox_Generate_on.currentText())
-            self.generate_on.append(self.combobox_Generate_on.currentText())
-
-    def remove_from_list(self):
-        if self.list_Generate_on.currentItem() is not None:
-            self.generate_on.remove(self.list_Generate_on.currentItem().text())
-        self.list_Generate_on.takeItem(self.list_Generate_on.currentRow())
-
-    def open_manage_cbs(self):
-        dialog = dialog_custom_Block_manage(self)
-        if dialog.exec_() == QtGui.QDialog.Accepted:
-            self.cbs_file = dialog.selected
-
-    def more_options(self):
-        dialog = dialog_options(self, self.mcVersion, self.additional_functions, self.max_file_length, self.file_name_format)
-        result = dialog.exec()
-        if result == QtGui.QDialog.Accepted:
-            print(dialog.result)
-            self.additional_functions = dialog.result[1]
-
-    def read_tag_name(self, tag_type, tag_container):
-        if tag_container == 0:
-            name_length = int.from_bytes(file_in.read(2), 'big')
-            name = bytes.decode(file_in.read(name_length), 'utf-8', 'strict')
-            debug_print(tag_type + ' | Name: ' + name + '| Value:', True)
-            return name
-        else:
-            debug_print(tag_type + ' | Value:', True)
-            return None
 
     def convert(self, arg_file_in, arg_file_out):
 
@@ -416,21 +407,6 @@ class MainWindow(QtGui.QMainWindow):
                     file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
                         i] + '(world, rand, x, y, z);\n		}\n\n')
             file_out.write('       return true;\n\n	}\n\n')
-
-            # checks for advanced options
-            if self.additional_functions:
-
-                # same as above only that this one is already called with a certain rotation disabled by default
-                file_out.write(
-                    '	public boolean generate(World world, Random rand, int x, int y, int z, int i)\n	{\n\n')
-                for i in range(0, rotations_count):
-                    file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
-                        i] + '(world, rand, x, y, z);\n		}\n\n')
-                file_out.write('       return true;\n\n	}\n\n')
-
-                # creates function for getting the count of rotations disabled by default
-                file_out.write(
-                    '	public int getrotations()\n	{\n\n		return ' + str(rotations_count) + ';\n\n    }\n\n')
 
             self.progressbar_main.setValue(self.progressbar_main.value() + 4)
 
@@ -726,6 +702,25 @@ class MainWindow(QtGui.QMainWindow):
         file_in.close()
         file_out.close()
 
+    def noschematic(self):
+        QtGui.QMessageBox.warning(self, self.tr('Error'),
+                                  self.tr('The selected File dose not appear to be a Schematic! \n We are Sorry :('))
+
+    def read_tag_name(self, tag_type, tag_container):
+        if tag_container == 0:
+            name_length = int.from_bytes(file_in.read(2), 'big')
+            name = bytes.decode(file_in.read(name_length), 'utf-8', 'strict')
+            debug_print(tag_type + ' | Name: ' + name + '| Value:', True)
+            return name
+        else:
+            debug_print(tag_type + ' | Value:', True)
+            return None
+
+    def done(self):
+        debug_print("Done with everything! ;)")
+        QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
+        self.progressbar_main.setVisible(False)
+        self.button_Start.setVisible(True)
 
 def debug_print(string, args=False):
     if DEBUGGING:

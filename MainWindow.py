@@ -36,7 +36,6 @@ def components(self):
     self.button_Start = QtGui.QPushButton(self.tr('Start'))
     self.progressbar_main = QtGui.QProgressBar()
 
-
 def layout(self):
     layoutgroupoptions = QtGui.QGridLayout()
 
@@ -83,7 +82,6 @@ def layout(self):
     widgetzentral.setLayout(layoutzentral)
     self.setCentralWidget(widgetzentral)
 
-
 def tooltipsinit(self):
     self.lineedit_File_in_Path.setToolTip(
         self.tr('Enter the path to the .schematic file you want to convert or press \"Browse...\" to select a file.'))
@@ -126,7 +124,6 @@ def tooltipsinit(self):
     self.progressbar_main.setToolTip(self.tr('Shows the progress of the conversion of the current file.'))
     self.setToolTip(
         self.tr('Schematic to Java Structure by jajo_11 inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING TOOL"'))
-
 
 def preinit(self):
     self.combobox_Generate_on.setEditable(True)
@@ -190,7 +187,6 @@ def preinit(self):
     self.progressbar_main.setVisible(False)
     self.progressbar_main.setAlignment(QtCore.Qt.AlignCenter)
 
-
 def save_package(self):
     packages_file = open('options', 'rb')
     packages = pickle.load(packages_file)
@@ -200,7 +196,6 @@ def save_package(self):
         packages.append(self.combobox_Package.currentText())
         pickle.dump(packages, packages_file)
     packages_file.close()
-
 
 class dialog_custom_Block(QtGui.QDialog):
     def __init__(self, parent, x, y, z, id):
@@ -250,7 +245,6 @@ class dialog_custom_Block(QtGui.QDialog):
     @property
     def input_package(self):
         return self.lineedit_package.text()
-
 
 class dialog_custom_Block_save(QtGui.QDialog):
     def __init__(self, parent, names, ids, packages):
@@ -352,7 +346,6 @@ class dialog_custom_Block_save(QtGui.QDialog):
             pickle.dump(packages_saved, save_file)
             save_file.close()
         self.accept()
-
 
 class dialog_custom_Block_manage(QtGui.QDialog):
     def __init__(self, parent):
@@ -551,6 +544,10 @@ class dialog_custom_Block_manage(QtGui.QDialog):
 class dialog_options(QtGui.QDialog):
     def __init__(self, *args):
         QtGui.QDialog.__init__(self, *args)
+        self.mcVersion = ""
+        self.getTopSolidOrLiquidBlock = False
+        self.max_file_length = 1000
+        self.file_name_format = '000_Filename'
         self.components()
         self.layout()
         self.preinit()
@@ -562,7 +559,7 @@ class dialog_options(QtGui.QDialog):
         self.Group_genneral = QtGui.QGroupBox(self.tr('General'))
         self.Label_Mc_version = QtGui.QLabel(self.tr('Targeted Minecraft Version:'))
         self.ComboBox_Mc_version = QtGui.QComboBox()
-        self.Checkbox_additional_functions = QtGui.QCheckBox(self.tr('Generate additional functions'))
+        self.Checkbox_getTopSolidBlock = QtGui.QCheckBox(self.tr('Use \"world.getTopSolidOrLiquidBlock\"'))
 
         self.Group_split_files = QtGui.QGroupBox(self.tr('File Splitting'))
         self.Button_Done = QtGui.QPushButton(self.tr('Done'))
@@ -577,7 +574,7 @@ class dialog_options(QtGui.QDialog):
 
         layoutgroup_general.addWidget(self.Label_Mc_version)
         layoutgroup_general.addWidget(self.ComboBox_Mc_version)
-        layoutgroup_general.addWidget(self.Checkbox_additional_functions)
+        layoutgroup_general.addWidget(self.Checkbox_getTopSolidBlock)
 
         self.Group_genneral.setLayout(layoutgroup_general)
 
@@ -600,18 +597,24 @@ class dialog_options(QtGui.QDialog):
         self.setLayout(layoutzentral)
 
     def preinit(self):
+        print(self.mcVersion)
         self.ComboBox_Mc_version.addItems(['1.7.x'])
+        self.ComboBox_Mc_version.setCurrentIndex(self.ComboBox_Mc_version.findText(self.mcVersion))
+        if self.getTopSolidOrLiquidBlock == True:
+            self.Checkbox_getTopSolidBlock.setChecked()
         self.Spinbox_Max_File_size.setRange(100, 10000)
         self.Spinbox_Max_File_size.setSingleStep(100)
-        self.Spinbox_Max_File_size.setValue(1000)
+        self.Spinbox_Max_File_size.setValue(self.max_file_length)
         self.ComboBox_File_name_format.addItems(['000Filename', '000_Filename', '000.Filename', 'Filename000',
                                                  'Filename_000', 'Filename.000'])
-        self.ComboBox_File_name_format.setCurrentIndex(1)
+        self.ComboBox_File_name_format.setCurrentIndex(self.ComboBox_File_name_format.findText(self.file_name_format))
 
     def tooltipsinit(self):
         self.Spinbox_Max_File_size.setToolTip(self.tr('The number of "setBlock" lines before starting a new File.'))
         self.ComboBox_File_name_format.setToolTip(self.tr('This sets how your file will be named in case of it' +
                                                           ' exceeding the limit above.'))
+        self.Checkbox_getTopSolidBlock.setToolTip(self.tr('Your converted Structures will automatically try to spawn on'
+                                                          ' the highest block'))
 
     def createConnects(self):
         self.Button_Done.clicked.connect(self.accept)
@@ -620,6 +623,6 @@ class dialog_options(QtGui.QDialog):
     @property
     def result(self):
         return self.ComboBox_Mc_version.currentText(),\
-               self.Checkbox_additional_functions.isChecked(),\
+               self.Checkbox_getTopSolidBlock.isChecked(),\
                self.Spinbox_Max_File_size.value(),\
                self.ComboBox_File_name_format.currentText()
