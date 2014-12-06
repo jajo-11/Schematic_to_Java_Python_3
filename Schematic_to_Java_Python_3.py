@@ -17,6 +17,9 @@ class MainWindow(QtGui.QMainWindow):
         self.height = 0
         self.width = 0
         self.length = 0
+        self.max_file_length = 1000
+        self.file_name_format = '000_Filename'
+        self.mcVersion = '1.7.x'
         # actually its file x of x files in a format like this (1/10) as string for the progressbar text
         self.number_of_files = '(x/x)'
 
@@ -132,7 +135,7 @@ class MainWindow(QtGui.QMainWindow):
             self.cbs_file = dialog.selected
 
     def more_options(self):
-        dialog = dialog_options(self)
+        dialog = dialog_options(self, self.mcVersion, self.additional_functions, self.max_file_length, self.file_name_format)
         result = dialog.exec()
         if result == QtGui.QDialog.Accepted:
             print(dialog.result)
@@ -389,17 +392,17 @@ class MainWindow(QtGui.QMainWindow):
             rotations_count = len(rotations)
 
             file_out.write('		};\n	}\n\n' +
-                           '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n' +
+                           '	public boolean LocationIsValidSpawn(World world, int x, int y, int z)\n {\n' +
                            '\n		Block checkBlock = world.getBlock(x, y - 1, z);\n' +
                            '		Block blockAbove = world.getBlock(x, y , z);\n' +
                            '		Block blockBelow = world.getBlock(x, y - 2, z);\n\n' +
                            '		for (Block i : GetValidSpawnBlocks())\n		{\n' +
                            '			if (blockAbove != Blocks.air)\n			{\n' +
                            '				return false;\n			}\n' +
-                           '			if (block == i)\n			{\n				return true;\n			}\n' +
-                           '			else if (block == Blocks.snow_layer && blockBelow == i)\n' +
+                           '			if (checkBlock == i)\n			{\n				return true;\n			}\n' +
+                           '			else if (checkBlock == Blocks.snow_layer && blockBelow == i)\n' +
                            '			{\n				return true;\n			}\n' +
-                           '			else if (block.getMaterial() == Material.plants && blockBelow == i)\n' +
+                           '			else if (checkBlock.getMaterial() == Material.plants && blockBelow == i)\n' +
                            '			{\n				return true;\n			}\n		}\n' +
                            '		return false;\n	}\n\n')
 
