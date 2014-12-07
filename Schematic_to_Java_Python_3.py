@@ -21,7 +21,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.getTopSolidOrLiquidBlock = False
         self.max_file_length = 1000
-        self.file_name_format = '000_Filename'
+        self.file_name_format = '000_{Filename}'
         self.mcVersion = '1.7.x'
 
         # actually its file x of x files in a format like this (1/10) as string for the progressbar text
@@ -98,13 +98,13 @@ class MainWindow(QtGui.QMainWindow):
         dialog.getTopSolidOrLiquidBlock = self.getTopSolidOrLiquidBlock
         dialog.max_file_length = self.max_file_length
         dialog.file_name_format = self.file_name_format
+        dialog.preinit()
         result = dialog.exec()
         if result == QtGui.QDialog.Accepted:
-            debug_print(dialog.result)
-            self.mcVersion = dialog.mcVersion
-            self.getTopSolidOrLiquidBlock = dialog.getTopSolidOrLiquidBlock
-            self.max_file_length = dialog.max_file_length
-            self.file_name_format = dialog.file_name_format
+            self.mcVersion = dialog.ComboBox_Mc_version.currentText()
+            self.getTopSolidOrLiquidBlock = dialog.Checkbox_getTopSolidBlock.isChecked()
+            self.max_file_length = dialog.Spinbox_Max_File_size.value()
+            self.file_name_format = dialog.ComboBox_File_name_format.currentText()
 
     def convertchecker(self):
 
@@ -245,7 +245,7 @@ class MainWindow(QtGui.QMainWindow):
 
         global file_in
         file_in = gzip.open(arg_file_in, 'rb')
-        file_out = open(arg_file_out, 'w')
+        file_out = open(arg_file_out), 'w')
         do_not_generate_air = self.checkbox_Generate_Air.isChecked()
 
         if file_in.read(12) == bytearray.fromhex('0A0009536368656D61746963'):
@@ -628,6 +628,10 @@ class MainWindow(QtGui.QMainWindow):
 
                     # counts to 1500 and splits the method after that so the methods can't exceed the byte limit in Java
                     g += 1
+                    if g + c * 1500 == self.max_file_length:
+                        g, c = 0
+                        file_out.write('\n		new ' + rotations + str(c) + '(world, rand, x, y, z);\n' + \
+                                       '		return true;\n\n	}\n}')
                     if g == 1500:
                         c += 1
                         file_out.write('\n		' + rotations + str(c) + '(world, rand, x, y, z);\n' + \

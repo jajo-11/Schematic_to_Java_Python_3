@@ -550,7 +550,6 @@ class dialog_options(QtGui.QDialog):
         self.file_name_format = '000_Filename'
         self.components()
         self.layout()
-        self.preinit()
         self.tooltipsinit()
         self.createConnects()
         self.setWindowTitle(self.tr('More Options'))
@@ -600,13 +599,12 @@ class dialog_options(QtGui.QDialog):
         print(self.mcVersion)
         self.ComboBox_Mc_version.addItems(['1.7.x'])
         self.ComboBox_Mc_version.setCurrentIndex(self.ComboBox_Mc_version.findText(self.mcVersion))
-        if self.getTopSolidOrLiquidBlock == True:
-            self.Checkbox_getTopSolidBlock.setChecked()
+        self.Checkbox_getTopSolidBlock.setChecked(self.getTopSolidOrLiquidBlock)
         self.Spinbox_Max_File_size.setRange(100, 10000)
         self.Spinbox_Max_File_size.setSingleStep(100)
         self.Spinbox_Max_File_size.setValue(self.max_file_length)
-        self.ComboBox_File_name_format.addItems(['000Filename', '000_Filename', '000.Filename', 'Filename000',
-                                                 'Filename_000', 'Filename.000'])
+        self.ComboBox_File_name_format.addItems(['000{Filename}', '{000_Filename}', '{000.Filename}', '{Filename}000',
+                                                 '{Filename}_000', '{Filename}.000'])
         self.ComboBox_File_name_format.setCurrentIndex(self.ComboBox_File_name_format.findText(self.file_name_format))
 
     def tooltipsinit(self):
@@ -619,10 +617,3 @@ class dialog_options(QtGui.QDialog):
     def createConnects(self):
         self.Button_Done.clicked.connect(self.accept)
         self.Button_Cancel.clicked.connect(self.reject)
-
-    @property
-    def result(self):
-        return self.ComboBox_Mc_version.currentText(),\
-               self.Checkbox_getTopSolidBlock.isChecked(),\
-               self.Spinbox_Max_File_size.value(),\
-               self.ComboBox_File_name_format.currentText()
