@@ -353,8 +353,8 @@ class MainWindow(QtGui.QMainWindow):
             self.progressbar_main.setFormat('Writing File (%p%) ' + self.number_of_files)
 
             if size > self.max_file_length:
-                file_out_000 = os.path.dirname(arg_file_out) + self.file_name_format.replace(
-                            'Filename', os.path.basename(arg_file_out)).replace('000', (3-len(str(file_counter)))*'0')
+                file_out_000 = os.path.dirname(arg_file_out) + '//' + self.file_name_format.replace(
+                            'Filename', os.path.basename(arg_file_out))
             else:
                 file_out_000 = arg_file_out
 
