@@ -21,7 +21,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.getTopSolidOrLiquidBlock = False
         self.max_file_length = 1000
-        self.file_name_format = '000_{Filename}'
+        self.file_name_format = '000_Filename'
         self.mcVersion = '1.7.x'
 
         # actually its file x of x files in a format like this (1/10) as string for the progressbar text
@@ -210,6 +210,7 @@ class MainWindow(QtGui.QMainWindow):
 
         g = 0  # counts up to 1500 to split the methode
         c = 1  # counts the total number of "setblock" methodes
+        file_counter = 0  # counts the total number of files
 
         # rotation
         rotations = []  # list contains checked rotations
@@ -245,7 +246,6 @@ class MainWindow(QtGui.QMainWindow):
 
         global file_in
         file_in = gzip.open(arg_file_in, 'rb')
-        file_out = open(arg_file_out), 'w')
         do_not_generate_air = self.checkbox_Generate_Air.isChecked()
 
         if file_in.read(12) == bytearray.fromhex('0A0009536368656D61746963'):
@@ -351,6 +351,14 @@ class MainWindow(QtGui.QMainWindow):
             debug_print(self.width)
             debug_print('Writing file')
             self.progressbar_main.setFormat('Writing File (%p%) ' + self.number_of_files)
+
+            if size > self.max_file_length:
+                file_out_000 = os.path.dirname(arg_file_out) + self.file_name_format.replace(
+                            'Filename', os.path.basename(arg_file_out)).replace('000', (3-len(str(file_counter)))*'0')
+            else:
+                file_out_000 = arg_file_out
+
+            file_out = open(file_out_000, 'w')
 
             file_out.write(
                 '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING' +
@@ -629,15 +637,20 @@ class MainWindow(QtGui.QMainWindow):
                     # counts to 1500 and splits the method after that so the methods can't exceed the byte limit in Java
                     g += 1
                     if g + c * 1500 == self.max_file_length:
-                        g, c = 0
-                        file_out.write('\n		new ' + rotations + str(c) + '(world, rand, x, y, z);\n' + \
+                        (g, c) = 0, 0
+                        file_counter += 1
+                        file_name = self.file_name_format.replace(
+                            'Filename', os.path.basename(arg_file_out)).replace('000', (3-len(str(file_counter)))*'0')
+                        file_out.write('\n		new ' + file_name + '(world, rand, x, y, z);\n' +
                                        '		return true;\n\n	}\n}')
+                        file_out.close()
+                        file_out = open(os.path.dirname(arg_file_out) + file_name, 'w')
                     if g == 1500:
                         c += 1
-                        file_out.write('\n		' + rotations + str(c) + '(world, rand, x, y, z);\n' + \
-                                       '		return true;\n\n	}\n' + \
-                                       '	public boolean ' + rotations + str(c) + \
-                                       '(World world, Random rand, int x, int y, int z)\n' + \
+                        file_out.write('\n		' + rotations + str(c) + '(world, rand, x, y, z);\n' +
+                                       '		return true;\n\n	}\n' +
+                                       '	public boolean ' + rotations + str(c) +
+                                       '(World world, Random rand, int x, int y, int z)\n' +
                                        '	{\n\n')
                         g = 0
 

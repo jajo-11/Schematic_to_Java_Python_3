@@ -603,8 +603,8 @@ class dialog_options(QtGui.QDialog):
         self.Spinbox_Max_File_size.setRange(100, 10000)
         self.Spinbox_Max_File_size.setSingleStep(100)
         self.Spinbox_Max_File_size.setValue(self.max_file_length)
-        self.ComboBox_File_name_format.addItems(['000{Filename}', '{000_Filename}', '{000.Filename}', '{Filename}000',
-                                                 '{Filename}_000', '{Filename}.000'])
+        self.ComboBox_File_name_format.addItems(['000Filename', '000_Filename', '000.Filename', 'Filename000',
+                                                 'Filename_000', 'Filename.000'])
         self.ComboBox_File_name_format.setCurrentIndex(self.ComboBox_File_name_format.findText(self.file_name_format))
 
     def tooltipsinit(self):
