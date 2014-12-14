@@ -354,7 +354,7 @@ class MainWindow(QtGui.QMainWindow):
 
             if size > self.max_file_length:
                 file_out_000 = os.path.dirname(arg_file_out) + '//' + self.file_name_format.replace(
-                            'Filename', os.path.basename(arg_file_out))
+                    'Filename', os.path.basename(arg_file_out))
             else:
                 file_out_000 = arg_file_out
 
@@ -636,15 +636,25 @@ class MainWindow(QtGui.QMainWindow):
 
                     # counts to 1500 and splits the method after that so the methods can't exceed the byte limit in Java
                     g += 1
-                    if g + c * 1500 == self.max_file_length:
-                        (g, c) = 0, 0
+                    if g + (c - 1) * 1500 == self.max_file_length:
+                        g = 0
+                        c = 0
                         file_counter += 1
                         file_name = self.file_name_format.replace(
-                            'Filename', os.path.basename(arg_file_out)).replace('000', (3-len(str(file_counter)))*'0')
-                        file_out.write('\n		new ' + file_name + '(world, rand, x, y, z);\n' +
-                                       '		return true;\n\n	}\n}')
+                            'Filename', os.path.basename(arg_file_out.rstrip('.java'))).replace(
+                            '000', (3 - len(str(file_counter))) * '0' + str(file_counter))
+                        file_out.write('\n		new ' + file_name + '().' + rotations + str(c) +
+                                       '(world, rand, x, y, z);\n		return true;\n\n	}\n}')
                         file_out.close()
-                        file_out = open(os.path.dirname(arg_file_out) + file_name, 'w')
+                        file_out = open(os.path.dirname(arg_file_out) + '//' + file_name + '.java', 'w')
+                        file_header = ('//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S'
+                                       '.SCHEMATIC TO JAVA CONVERTINGTOOL"\n\npackage {};\n\nimport '
+                                       'java.util.Random;\n\nimport net.minecraft.block.Block;\nimport'
+                                       ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;'
+                                       '\n\npublic class {}\n{{\n	public boolean {}' \
+                                       '(World world, Random rand, int x, int y, int z)\n    {{\n')
+                        file_out.write(file_header.format(self.combobox_Package.currentText(), file_name,
+                                                          rotations + str(c)))
                     if g == 1500:
                         c += 1
                         file_out.write('\n		' + rotations + str(c) + '(world, rand, x, y, z);\n' +
@@ -738,6 +748,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.information(self, self.tr('Done'), self.tr('Operation Completed'))
         self.progressbar_main.setVisible(False)
         self.button_Start.setVisible(True)
+
 
 def debug_print(string, args=False):
     if DEBUGGING:
