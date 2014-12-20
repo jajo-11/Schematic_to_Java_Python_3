@@ -409,42 +409,41 @@ class MainWindow(QtGui.QMainWindow):
                            '			{\n				return true;\n			}\n		}\n' +
                            '		return false;\n	}\n\n')
 
-            if rotations_count == 0:
-                pass
-            else:
+            if rotations_count != 1:
                 # generates code for random decision of the rotation
                 file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z)\n' +
                                '	{\n		int i = rand.nextInt(' + str(rotations_count) + ');\n\n')
                 for i in range(0, rotations_count):
                     file_out.write('		if(i == ' + str(i) + ')\n		{\n		    ' + rotations[
                         i] + '(world, rand, x, y, z);\n		}\n\n')
-            file_out.write('       return true;\n\n	}\n\n')
+                file_out.write('       return true;\n\n	}\n\n')
 
             self.progressbar_main.setValue(self.progressbar_main.value() + 4)
 
             # generates the code witch checks fore valid spawn locations
             for rotations in rotations:
 
+                if rotations_count == 1:
+                    file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z)\n'
+                                   '	{\n		if')
+                else:
+                    file_out.write('	public boolean {}(World world, Random rand, int x, int y, int z)\n'
+                                   '	{{\n		if'.format(rotations))
+
                 if rotations == 'generate_r0' or rotations == 'generate_r2':
 
                     if self.combobox_check_points.currentText() == 'Corners':
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n' +
-                                       '	{\n		if(!LocationIsValidSpawn(world, x, y, z) ||' +
+                        file_out.write('(!LocationIsValidSpawn(world, x, y, z) ||' +
                                        ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z) ||' +
                                        ' !LocationIsValidSpawn(world, x + ' + str(self.width - 1) + ', y, z + ' +
                                        str(self.length - 1) + ') || !LocationIsValidSpawn(world, x, y, z + ' +
                                        str(self.length - 1) + '))\n		{\n			return false;\n		}\n\n')
                     elif self.combobox_check_points.currentText() == 'Center':
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n' +
-                                       '	{\n		if(!LocationIsValidSpawn(world, x + ' +
+                        file_out.write('(!LocationIsValidSpawn(world, x + ' +
                                        str(self.width // 2) + ', y, z + ' + str(self.length // 2) +
                                        '))\n		{\n			return false;\n		}\n\n')
                     else:
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n	{\n		' +
-                                       'if\n		(\n')
+                        file_out.write('		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if x == self.width - 1:
@@ -468,23 +467,17 @@ class MainWindow(QtGui.QMainWindow):
                 if rotations == 'generate_r1' or rotations == 'generate_r3':
 
                     if self.combobox_check_points.currentText() == 'Corners':
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n{\n		' +
-                                       'if(!LocationIsValidSpawn(world, x, y, z) ||' +
+                        file_out.write('(!LocationIsValidSpawn(world, x, y, z) ||' +
                                        ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z) ||' +
                                        ' !LocationIsValidSpawn(world, x + ' + str(self.length - 1) + ', y, z + ' +
                                        str(self.width - 1) + ') || !LocationIsValidSpawn(world, x, y, z + ' +
                                        str(self.width - 1) + '))\n		{\n			return false;\n		}\n\n')
                     elif self.combobox_check_points.currentText() == 'Center':
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n{\n		' +
-                                       'if(!LocationIsValidSpawn(world, x + ' + str(self.length // 2) +
+                        file_out.write('(!LocationIsValidSpawn(world, x + ' + str(self.length // 2) +
                                        ', y, z + ' + str(self.width // 2) + '))\n' +
                                        '		{\n			return false;\n		}\n\n')
                     else:
-                        file_out.write('	public boolean ' + rotations +
-                                       '(World world, Random rand, int x, int y, int z)\n	{\n		' +
-                                       'if\n		(\n')
+                        file_out.write('		(\n')
                         for blocks in range(0, self.width * self.length):
 
                             if z == 0:
@@ -504,6 +497,9 @@ class MainWindow(QtGui.QMainWindow):
                                 file_out.write(
                                     '		    !LocationIsValidSpawn(world, x + ' + str(x) + ', y, z +' + str(
                                         z) + ') ||\n')
+
+                if rotations_count == 1:
+                    rotations = 'generate'
 
                 for i in range(0, size):
 
