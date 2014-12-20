@@ -425,10 +425,15 @@ class MainWindow(QtGui.QMainWindow):
 
                 if rotations_count == 1:
                     file_out.write('	public boolean generate(World world, Random rand, int x, int y, int z)\n'
-                                   '	{\n		if')
+                                   '	{\n')
                 else:
                     file_out.write('	public boolean {}(World world, Random rand, int x, int y, int z)\n'
-                                   '	{{\n		if'.format(rotations))
+                                   '	{{\n'.format(rotations))
+
+                if self.option.get('getTopSolidOrLiquidBlock'):
+                    file_out.write('		y = world.getTopSolidOrLiquidBlock(x, z);\n\n		if')
+                else:
+                    file_out.write('		if')
 
                 if rotations == 'generate_r0' or rotations == 'generate_r2':
 
