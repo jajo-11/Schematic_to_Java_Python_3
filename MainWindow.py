@@ -580,6 +580,7 @@ class dialog_options(QtGui.QDialog):
         self.ComboBox_Mc_version.addItems(['1.7.x'])
         self.ComboBox_Mc_version.setCurrentIndex(self.ComboBox_Mc_version.findText(self.mcVersion))
         self.Checkbox_getTopSolidBlock.setChecked(self.getTopSolidOrLiquidBlock)
+        self.Checkbox_getTopSolidBlock.setDisabled(True)
         self.Spinbox_Max_File_size.setRange(100, 10000)
         self.Spinbox_Max_File_size.setSingleStep(100)
         self.Spinbox_Max_File_size.setValue(self.max_file_length)
