@@ -409,7 +409,7 @@ class MainWindow(QtGui.QMainWindow):
                            '			{\n				return true;\n			}\n		}\n' +
                            '		return false;\n	}\n\n')
 
-            if rotations_count == 1:
+            if rotations_count == 0:
                 pass
             else:
                 # generates code for random decision of the rotation
