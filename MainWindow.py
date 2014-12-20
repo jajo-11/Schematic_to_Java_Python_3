@@ -128,17 +128,7 @@ def tooltipsinit(self):
 def preinit(self):
     self.combobox_Generate_on.setEditable(True)
     self.combobox_Package.setEditable(True)
-    if os.path.isfile('options') and os.path.getsize('options') > 0:
-        packages_file = open('options', 'rb')
-        packages = pickle.load(packages_file)
-        packages_file.close()
-        self.combobox_Package.addItems(packages)
-    else:
-        packages_file = open('options', 'wb')
-        packages = []
-        pickle.dump(packages, packages_file)
-        packages_file.close()
-    self.combobox_Package.addItem('yourname.modname')
+    self.combobox_Package.addItems(self.option.get('package'))
     self.spinbox_offset.setRange(-255, 255)
     self.combobox_check_points.addItems(['Corners', 'Center', 'Everywhere'])
     self.combobox_Generate_on.addItems(
@@ -186,16 +176,6 @@ def preinit(self):
     self.button_manage_cl.setDisabled(True)
     self.progressbar_main.setVisible(False)
     self.progressbar_main.setAlignment(QtCore.Qt.AlignCenter)
-
-def save_package(self):
-    packages_file = open('options', 'rb')
-    packages = pickle.load(packages_file)
-    packages_file.close()
-    packages_file = open('options', 'wb')
-    if self.combobox_Package.currentText() not in packages and self.combobox_Package.currentText() != 'yourname.modname':
-        packages.append(self.combobox_Package.currentText())
-        pickle.dump(packages, packages_file)
-    packages_file.close()
 
 class dialog_custom_Block(QtGui.QDialog):
     def __init__(self, parent, x, y, z, id):

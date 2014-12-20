@@ -5,6 +5,7 @@ import sys
 
 from MainWindow import *
 from Metadatarotation import rotate_meta_data
+from Options_Provider import OptionsProvider
 
 DEBUGGING = True
 
@@ -19,10 +20,13 @@ class MainWindow(QtGui.QMainWindow):
         self.width = 0
         self.length = 0
 
-        self.getTopSolidOrLiquidBlock = False
-        self.max_file_length = 1000
-        self.file_name_format = '000_Filename'
-        self.mcVersion = '1.7.x'
+        self.option = OptionsProvider()
+
+        self.option.new_option('getTopSolidOrLiquidBlock', False)
+        self.option.new_option('max_file_length', 1000)
+        self.option.new_option('file_name_format', '000_Filename')
+        self.option.new_option('mcVersion', '1.7.x')
+        self.option.new_option('package', ['yourname.modname'])
 
         # actually its file x of x files in a format like this (1/10) as string for the progressbar text
         self.number_of_files = '(x/x)'
@@ -37,11 +41,11 @@ class MainWindow(QtGui.QMainWindow):
         self.setWindowTitle(self.tr('Schematic to Structure Converter'))
 
     def createconnects(self):
-        self.button_File_in.clicked.connect(self.filedialogin)
-        self.button_File_out.clicked.connect(self.filedialogout)
+        self.button_File_in.clicked.connect(self.file_dialog_in)
+        self.button_File_out.clicked.connect(self.file_dialog_out)
         self.button_add_block.clicked.connect(self.add_to_list)
         self.button_remove_block.clicked.connect(self.remove_from_list)
-        self.button_Start.clicked.connect(self.convertchecker)
+        self.button_Start.clicked.connect(self.convert_checker)
         self.button_manage_cbs.clicked.connect(self.open_manage_cbs)
         self.button_more_options.clicked.connect(self.more_options)
         self.checkbox_rotation_1.stateChanged.connect(self.activate_checkbox_1)
@@ -57,21 +61,21 @@ class MainWindow(QtGui.QMainWindow):
             self.checkbox_rotation_1.setDisabled(True)
             self.checkbox_rotation_1.setChecked(True)
 
-    def filedialogin(self):
+    def file_dialog_in(self):
         file = QtGui.QFileDialog.getOpenFileNames(self, u"Open File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Schematics (*.schematic)')
         if file[0]:
-            filestring = ''
+            file_string = ''
             for paths in file[0]:
-                filestring = filestring + '"' + paths + '" '
-            self.lineedit_File_in_Path.setText(filestring)
+                file_string = file_string + '"' + paths + '" '
+            self.lineedit_File_in_Path.setText(file_string)
             if self.lineedit_File_out_Path.text() == '':
                 path = ''
                 for paths in file[0]:
                     path = path + '"' + paths.rstrip('schematic') + 'java' + '" '
                 self.lineedit_File_out_Path.setText(path)
 
-    def filedialogout(self):
+    def file_dialog_out(self):
         file = QtGui.QFileDialog.getSaveFileName(self, u"Save File", QtGui.QDesktopServices.storageLocation(
             QtGui.QDesktopServices.DesktopLocation), 'Java (*.java)')
         if file[0]:
@@ -94,19 +98,19 @@ class MainWindow(QtGui.QMainWindow):
 
     def more_options(self):
         dialog = dialog_options(self)
-        dialog.mcVersion = self.mcVersion
-        dialog.getTopSolidOrLiquidBlock = self.getTopSolidOrLiquidBlock
-        dialog.max_file_length = self.max_file_length
-        dialog.file_name_format = self.file_name_format
+        dialog.mcVersion = self.option.get('mcVersion')
+        dialog.getTopSolidOrLiquidBlock = self.option.get('getTopSolidOrLiquidBlock')
+        dialog.max_file_length = self.option.get('max_file_length')
+        dialog.file_name_format = self.option.get('file_name_format')
         dialog.preinit()
         result = dialog.exec()
         if result == QtGui.QDialog.Accepted:
-            self.mcVersion = dialog.ComboBox_Mc_version.currentText()
-            self.getTopSolidOrLiquidBlock = dialog.Checkbox_getTopSolidBlock.isChecked()
-            self.max_file_length = dialog.Spinbox_Max_File_size.value()
-            self.file_name_format = dialog.ComboBox_File_name_format.currentText()
+            self.option.set('mcVersion', dialog.ComboBox_Mc_version.currentText())
+            self.option.set('getTopSolidOrLiquidBlock', dialog.Checkbox_getTopSolidBlock.isChecked())
+            self.option.set('max_file_length', dialog.Spinbox_Max_File_size.value())
+            self.option.set('file_name_format', dialog.ComboBox_File_name_format.currentText())
 
-    def convertchecker(self):
+    def convert_checker(self):
 
         # preaparing a list of all files to convert
         file_list_in = self.lineedit_File_in_Path.text().rstrip('" ').lstrip('" ').split('" "')
@@ -341,8 +345,8 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     debug_print('Well that went unexpectedly...\nUnknown tag type: ' + str(int.from_bytes(tag, 'big')))
                     QtGui.QMessageBox.information(self, self.tr('Error'), self.tr('Well that went unexpectedly...\n' +
-                                                                                  'Unknown tag type: ' + str(
-                        int.from_bytes(tag, 'big'))))
+                                                                                  'Unknown tag type: ' +
+                                                                                  str(int.from_bytes(tag, 'big'))))
                     sys.exit(int.from_bytes(tag, 'big'))
 
             size = self.height * self.length * self.width  # calculate block count
@@ -352,8 +356,8 @@ class MainWindow(QtGui.QMainWindow):
             debug_print('Writing file')
             self.progressbar_main.setFormat('Writing File (%p%) ' + self.number_of_files)
 
-            if size > self.max_file_length:
-                file_out_000 = os.path.dirname(arg_file_out) + '//' + self.file_name_format.replace(
+            if size > self.option.get('max_file_length'):
+                file_out_000 = os.path.dirname(arg_file_out) + '//' + self.option.get('file_name_format').replace(
                     'Filename', os.path.basename(arg_file_out))
             else:
                 file_out_000 = arg_file_out
@@ -636,11 +640,11 @@ class MainWindow(QtGui.QMainWindow):
 
                     # counts to 1500 and splits the method after that so the methods can't exceed the byte limit in Java
                     g += 1
-                    if g + (c - 1) * 1500 == self.max_file_length:
+                    if g + (c - 1) * 1500 == self.option.get('max_file_length'):
                         g = 0
                         c = 0
                         file_counter += 1
-                        file_name = self.file_name_format.replace(
+                        file_name = self.option.get('file_name_format').replace(
                             'Filename', os.path.basename(arg_file_out.rstrip('.java'))).replace(
                             '000', (3 - len(str(file_counter))) * '0' + str(file_counter))
                         file_out.write('\n		new ' + file_name + '().' + rotations + str(c) +
@@ -651,7 +655,7 @@ class MainWindow(QtGui.QMainWindow):
                                        '.SCHEMATIC TO JAVA CONVERTINGTOOL"\n\npackage {};\n\nimport '
                                        'java.util.Random;\n\nimport net.minecraft.block.Block;\nimport'
                                        ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;'
-                                       '\n\npublic class {}\n{{\n	public boolean {}' \
+                                       '\n\npublic class {}\n{{\n	public boolean {}'
                                        '(World world, Random rand, int x, int y, int z)\n    {{\n')
                         file_out.write(file_header.format(self.combobox_Package.currentText(), file_name,
                                                           rotations + str(c)))
@@ -718,7 +722,10 @@ class MainWindow(QtGui.QMainWindow):
             debug_print('Done! ;)')
             self.progressbar_main.setFormat('Done (%p%) ' + self.number_of_files)
             self.progressbar_main.setValue(self.progressbar_main.value() + 5)
-            save_package(self)
+            current_packages = self.option.get('package')
+            if self.combobox_Package.currentText() not in current_packages:
+                current_packages = current_packages.append(self.combobox_Package.currentText())
+                self.option.set('package', current_packages)
             if new_custom_block is True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
                 dialog.exec_()
