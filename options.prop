@@ -5,3 +5,4 @@ b = getTopSolidOrLiquidBlock = True
 i = max_file_length = 1200
 s = file_name_format = 000_Filename
 s = mcVersion = 1.7.x
+l = package = yourname.modname

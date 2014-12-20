@@ -723,8 +723,9 @@ class MainWindow(QtGui.QMainWindow):
             self.progressbar_main.setFormat('Done (%p%) ' + self.number_of_files)
             self.progressbar_main.setValue(self.progressbar_main.value() + 5)
             current_packages = self.option.get('package')
-            if self.combobox_Package.currentText() not in current_packages:
-                current_packages = current_packages.append(self.combobox_Package.currentText())
+            current_package = self.combobox_Package.currentText()
+            if current_package not in current_packages:
+                current_packages.append(current_package)
                 self.option.set('package', current_packages)
             if new_custom_block is True:
                 dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
