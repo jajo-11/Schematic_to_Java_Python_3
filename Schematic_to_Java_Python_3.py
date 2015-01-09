@@ -7,7 +7,7 @@ from MainWindow import *
 from Metadatarotation import rotate_meta_data
 from Options_Provider import OptionsProvider
 
-DEBUGGING = True
+DEBUGGING = False
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -20,11 +20,11 @@ class MainWindow(QtGui.QMainWindow):
         self.width = 0
         self.length = 0
 
-        self.option = OptionsProvider()
+        self.option = OptionsProvider('options.prop', 'Options for jajo_11 Schematic to java converter')
 
         self.option.new_option('getTopSolidOrLiquidBlock', False)
         self.option.new_option('max_file_length', 1000)
-        self.option.new_option('file_name_format', '000_Filename')
+        self.option.new_option('file_name_format', '000Filename')
         self.option.new_option('mcVersion', '1.7.x')
         self.option.new_option('package', ['yourname.modname'])
 
@@ -175,6 +175,8 @@ class MainWindow(QtGui.QMainWindow):
                     141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160,
                     162, 163, 164, 165, 166, 167, 170, 171, 172, 173, 174,
                     175]
+        # block_id_vanilla_index marks the border between modded block ids and vanilla ones.
+        block_id_vanilla_index = block_id.index(block_id[-1])
         block_name = ['air', 'stone', 'grass', 'dirt', 'cobblestone', 'planks', 'sapling', 'bedrock', 'flowing_water',
                       'water', 'flowing_lava', 'lava', 'sand', 'gravel', 'gold_ore', 'iron_ore', 'coal_ore', 'log',
                       'leaves', 'sponge', 'glass', 'lapis_ore', 'lapis_block', 'dispenser', 'sandstone', 'note', 'bed',
@@ -353,6 +355,26 @@ class MainWindow(QtGui.QMainWindow):
 
             debug_print(self.length)
             debug_print(self.width)
+
+            # finds blocks that are unknown
+            ids_used = set(block_list)
+            vanilla_block_set = set(block_id)
+            unknown_blocks = ids_used - vanilla_block_set
+            for unknown_block in unknown_blocks:
+                y = block_list.index(unknown_block) // self.height
+                z = (block_list.index(unknown_block) - y * self.height) // self.width
+                x = block_list.index(unknown_block) - y * self.height - z * self.width
+                dialog = dialog_custom_Block(self, x, y, z, unknown_block)
+                dialog.exec_()
+                block_name.append(dialog.input_name)
+                block_id.append(unknown_block)
+                new_custom_block = True
+                if dialog.input_package not in additional_packages:
+                    additional_packages.append(dialog.input_package)
+            additional_packages_text = ''
+            for i in range(0, len(additional_packages)):
+                additional_packages_text += 'import ' + additional_packages[i] + ';\n'
+
             debug_print('Writing file')
             self.progressbar_main.setFormat('Writing File (%p%) ' + self.number_of_files)
 
@@ -365,19 +387,19 @@ class MainWindow(QtGui.QMainWindow):
             file_out = open(file_out_000, 'w')
 
             file_out.write(
-                '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING' +
-                'TOOL"\n\npackage ' + self.combobox_Package.currentText() +
-                ';\n\nimport java.util.Random;\n' +
-                '\nimport net.minecraft.block.Block;\n' +
-                'import net.minecraft.block.material.Material;\n' +
-                'import net.minecraft.init.Blocks;\n' +
-                'import net.minecraft.world.World;\n' +
-                'import net.minecraft.world.gen.feature.WorldGenerator;\n\n' +
-                'public class ' + os.path.splitext(os.path.basename(arg_file_out))[0] +
-                ' extends WorldGenerator\n' +
-                '{\n	protected Block[] GetValidSpawnBlocks()\n' +
-                '	{\n		return new Block[]\n' +
-                '		{\n')
+                '//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S .SCHEMATIC TO JAVA CONVERTING'
+                'TOOL"\n\npackage {}'
+                ';\n\nimport java.util.Random;\n'
+                '\nimport net.minecraft.block.Block;\n'
+                'import net.minecraft.block.material.Material;\n'
+                'import net.minecraft.init.Blocks;\n'
+                'import net.minecraft.world.World;\n'
+                'import net.minecraft.world.gen.feature.WorldGenerator;\n{}\n'
+                'public class {} extends WorldGenerator\n'
+                '{{\n	protected Block[] GetValidSpawnBlocks()\n'
+                '	{{\n		return new Block[]\n'
+                '		{{\n'.format(self.combobox_Package.currentText(), additional_packages_text,
+                                     os.path.splitext(os.path.basename(arg_file_out))[0]))
 
             for block in self.generate_on:
                 file_out.write('			' + block + ',\n')
@@ -571,6 +593,10 @@ class MainWindow(QtGui.QMainWindow):
                             y = 0
                             z = 0
 
+                    if block_id.index(block_list[i]) <= block_id_vanilla_index:
+                        field = 'Blocks.'
+                    else:
+                        field = ''
                     # rotates blocks via metadata if necessary
                     if block_list[i] in blocks_to_rotate:
                         meta_data_rotated = rotate_meta_data(rotations, block_name[block_id.index(block_list[i])],
@@ -581,45 +607,44 @@ class MainWindow(QtGui.QMainWindow):
                         g -= 1
 
                     # handels modded blocks also will handel blocks added to Minecraft I didn't know about
-                    elif block_list[i] not in block_id:
-
-                        if block_list[i] in custom_blocks_id:
-                            custom_block = custom_blocks[custom_blocks_id.index(block_list[i])]
-                        elif block_list[i] in custom_blocks_id_cbs:
-                            custom_block = custom_blocks_cbs[custom_blocks_id_cbs.index(block_list[i])]
-                            if additional_packages_cbs[custom_blocks_id_cbs.index(
-                                    block_list[i])] not in additional_packages:
-                                additional_packages.append(
-                                    additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])])
-                        else:
-                            dialog = dialog_custom_Block(self, x, y, z, block_list[i])
-                            dialog.exec_()
-                            custom_block = dialog.input_name
-                            custom_blocks_id.append(block_list[i])
-                            custom_blocks.append(custom_block)
-                            new_custom_block = True
-                            package = dialog.input_package
-                            if package not in additional_packages:
-                                additional_packages.append(package)
-
-                        file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' +
-                                       str(y + int(self.spinbox_offset.text())) + ', z + ' +
-                                       str(z) + ', ' + custom_block + ', ' + str(meta_data_list[i]) +
-                                       ', ' + '3' + ');\n')
+                    # elif block_list[i] not in block_id:
+                    #
+                    #     if block_list[i] in custom_blocks_id:
+                    #         custom_block = custom_blocks[custom_blocks_id.index(block_list[i])]
+                    #     elif block_list[i] in custom_blocks_id_cbs:
+                    #         custom_block = custom_blocks_cbs[custom_blocks_id_cbs.index(block_list[i])]
+                    #         if additional_packages_cbs[custom_blocks_id_cbs.index(
+                    #                 block_list[i])] not in additional_packages:
+                    #             additional_packages.append(
+                    #                 additional_packages_cbs[custom_blocks_id_cbs.index(block_list[i])])
+                    #     else:
+                    #         dialog = dialog_custom_Block(self, x, y, z, block_list[i])
+                    #         dialog.exec_()
+                    #         custom_block = dialog.input_name
+                    #         custom_blocks_id.append(block_list[i])
+                    #         custom_blocks.append(custom_block)
+                    #         new_custom_block = True
+                    #         package = dialog.input_package
+                    #         if package not in additional_packages:
+                    #             additional_packages.append(package)
+                    #
+                    #     file_out.write('		world.setBlock(x + ' + str(x) + ', y + ' +
+                    #                    str(y + int(self.spinbox_offset.text())) + ', z + ' +
+                    #                    str(z) + ', ' + custom_block + ', ' + str(meta_data_list[i]) +
+                    #                    ', ' + '3' + ');\n')
 
                     # adds blocks witch can pop of the wall to the end of a list witch is written to the file later
                     elif str(block_name[block_id.index(block_list[i])]) in non_solid_blocks:
                         if meta_data_rotated is not None:
                             blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' +
                                                       str(y + int(self.spinbox_offset.text())) +
-                                                      ', z + ' + str(z) + ', Blocks.' +
+                                                      ', z + ' + str(z) + ', ' + field +
                                                       str(block_name[block_id.index(block_list[i])]) +
                                                       ', ' + str(meta_data_rotated) + ', ' + '3' + ');\n')
                             meta_data_rotated = None
                         else:
                             blocks_placed_last.append('		world.setBlock(x + ' + str(x) + ', y + ' +
                                                       str(y + int(self.spinbox_offset.text())) +
-                                                      ', z + ' + str(z) + ', Blocks.' +
                                                       str(block_name[block_id.index(block_list[i])]) +
                                                       ', ' + str(meta_data_list[i]) + ', ' + '3' + ');\n')
 
@@ -628,14 +653,14 @@ class MainWindow(QtGui.QMainWindow):
                         if meta_data_rotated is not None:
                             file_out.write('		world.setBlock(x + ' + str(x) +
                                            ', y + ' + str(y + int(self.spinbox_offset.text())) +
-                                           ', z + ' + str(z) + ', Blocks.' +
+                                           ', z + ' + str(z) + ', ' + field +
                                            str(block_name[block_id.index(block_list[i])]) +
                                            ', ' + str(meta_data_rotated) + ', 3);\n')
                             meta_data_rotated = None
                         else:
                             file_out.write('		world.setBlock(x + ' + str(x) +
                                            ', y + ' + str(y + int(self.spinbox_offset.text())) +
-                                           ', z + ' + str(z) + ', Blocks.' +
+                                           ', z + ' + str(z) + ', ' + field +
                                            str(block_name[block_id.index(block_list[i])]) +
                                            ', ' + str(meta_data_list[i]) + ', 3);\n')
 
@@ -655,11 +680,11 @@ class MainWindow(QtGui.QMainWindow):
                         file_header = ('//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S'
                                        '.SCHEMATIC TO JAVA CONVERTINGTOOL"\n\npackage {};\n\nimport '
                                        'java.util.Random;\n\nimport net.minecraft.block.Block;\nimport'
-                                       ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;'
+                                       ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;{}'
                                        '\n\npublic class {}\n{{\n	public boolean {}'
                                        '(World world, Random rand, int x, int y, int z)\n    {{\n')
-                        file_out.write(file_header.format(self.combobox_Package.currentText(), file_name,
-                                                          rotations + str(c)))
+                        file_out.write(additional_packages, file_header.format(self.combobox_Package.currentText(),
+                                       file_name, rotations + str(c)))
                     if g == 1500:
                         c += 1
                         file_out.write('\n		' + rotations + str(c) + '(world, rand, x, y, z);\n' +
@@ -702,24 +727,24 @@ class MainWindow(QtGui.QMainWindow):
 
             file_out.write('\n}')
 
-            # writes additional imports for custom blocks
-            if additional_packages:
-
-                # reading in file to rewrite it
-                file_out.close()
-                file_out = open(arg_file_out, 'r')
-                file_out_rew = file_out.readlines()
-                file_out.close()
-
-                file_out = open(arg_file_out, 'w')
-                index_imports = file_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
-                i = 0  # just for counting lines
-                for Import in additional_packages:
-                    i += 1
-                    file_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
-                file_out_rew.insert(index_imports + len(additional_packages), '\n')
-                file_out.seek(0)
-                file_out.writelines(file_out_rew)
+            # # writes additional imports for custom blocks
+            # if additional_packages:
+            #
+            #     # reading in file to rewrite it
+            #     file_out.close()
+            #     file_out = open(arg_file_out, 'r')
+            #     file_out_rew = file_out.readlines()
+            #     file_out.close()
+            #
+            #     file_out = open(arg_file_out, 'w')
+            #     index_imports = file_out_rew.index('import net.minecraft.world.gen.feature.WorldGenerator;\n')
+            #     i = 0  # just for counting lines
+            #     for Import in additional_packages:
+            #         i += 1
+            #         file_out_rew.insert(index_imports + i, 'import ' + Import + ';\n')
+            #     file_out_rew.insert(index_imports + len(additional_packages), '\n')
+            #     file_out.seek(0)
+            #     file_out.writelines(file_out_rew)
             debug_print('Done! ;)')
             self.progressbar_main.setFormat('Done (%p%) ' + self.number_of_files)
             self.progressbar_main.setValue(self.progressbar_main.value() + 5)

@@ -1,5 +1,6 @@
 import pickle, os
 from PySide import QtCore, QtGui
+from Options_Provider import OptionsProvider
 
 
 def components(self):
@@ -338,8 +339,8 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.createLayout()
         self.tooltips()
         self.preinit()
-        self.list_blocks_in_table()
-        self.createConnects()
+        #self.list_blocks_in_table()
+        #self.createConnects()
         self.setWindowTitle(self.tr('Manage Coustom Block Set'))
 
     def createComponents(self):
@@ -373,10 +374,10 @@ class dialog_custom_Block_manage(QtGui.QDialog):
         self.button_add.setToolTip(self.tr('Open a custom block set from another location.'))
 
     def preinit(self):
-        if not os.path.isdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
-            os.mkdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets')
-        for file in os.listdir(os.path.dirname(os.path.realpath(__file__)) + '/customblocksets'):
-            if file.endswith('.cbs'):
+        if not os.path.isdir('customblocksets'):
+            os.mkdir('customblocksets')
+        for file in os.listdir('customblocksets'):
+            if file.endswith('.cbs2'):
                 self.combobox_sets.addItem(os.path.splitext(file)[0])
         self.table_blocks.setHorizontalHeaderLabels(['Ids', 'Names', 'Package'])
         self.table_blocks.verticalHeader().setVisible(False)

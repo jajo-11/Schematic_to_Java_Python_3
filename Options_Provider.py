@@ -1,17 +1,19 @@
 __author__ = 'joschka'
 
-# this is a class which is supposed to deal with all the options, reading, writing, and providing them, to be specific.
+# this is a class which is supposed to deal with all the options. Reading, writing, and providing them, to be specific.
 
 import os
 
 
 class OptionsProvider:
     # it loads all the options from 'options.prop' or creates the file if it dosen't exist.
-    def __init__(self):
+    def __init__(self, file_name, description):
+        self.file_name = file_name
+        self.description = description
         self.options = []
         self.values = []
-        if os.path.isfile('options.prop'):
-            file = open('options.prop', 'r')
+        if os.path.isfile(self.file_name):
+            file = open(self.file_name, 'r')
             for line in file.read().splitlines():
                 if '#' != line[0]:
                     j = line.split(' = ')
@@ -27,12 +29,10 @@ class OptionsProvider:
                             self.values.append(False)
                         else:
                             del self.options[-1]
-                            print('option.prop seems to be corrupt skipping...')
+                            print(self.file_name + ' seems to be corrupt skipping...')
                     elif j[0] == 'l':
                         self.values.append(j[2].split(','))
             file.close()
-        #print(self.options)
-        #print(self.values)
 
     # creates new options or passes if the option already exists
     def new_option(self, name, value):
@@ -48,10 +48,9 @@ class OptionsProvider:
 
     # writes 'options.prop' on closing of the program
     def __del__(self):
-        file = open('options.prop', 'w')
-        file.write('#Options for jajo_11 Schematic to java converter\n'
-                        '#first char is the type after a \' = \' is the name and after that the value\n'
-                        '#"s" = string, "i" = int, "b" = boolean, "l" = list of strings\n')
+        file = open(self.file_name, 'w')
+        file.write('#{}\n#first char is the type followed by a \' = \' then the name and after that the value\n'
+                   '#"s" = string, "i" = int, "b" = boolean, "l" = list of strings\n'.format(self.description))
         for option in self.options:
             index = self.options.index(option)
             if type(self.values[index]) is str:
