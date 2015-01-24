@@ -179,7 +179,7 @@ def preinit(self):
     self.progressbar_main.setAlignment(QtCore.Qt.AlignCenter)
 
 class dialog_custom_Block(QtGui.QDialog):
-    def __init__(self, parent, x, y, z, id):
+    def __init__(self, parent, x, y, z, id, name):
         super(dialog_custom_Block, self).__init__(parent)
         self.x = x
         self.y = y
@@ -189,7 +189,7 @@ class dialog_custom_Block(QtGui.QDialog):
         self.createLayout()
         self.createInfo()
         self.createConnects()
-        self.setWindowTitle(self.tr('Custom Block Name'))
+        self.setWindowTitle(self.tr('Unknown Block ' + name))
 
     def createComponents(self):
         self.label = QtGui.QLabel(
@@ -214,7 +214,7 @@ class dialog_custom_Block(QtGui.QDialog):
         self.lineedit.setPlaceholderText(self.tr('Modname.BlockName'))
         self.lineedit.setToolTip(self.tr('Insert block name here (looks similar this: Modname.BlockName)'))
         self.lineedit_package.setPlaceholderText(self.tr('Yourname.ModName.ModName'))
-        self.lineedit.setToolTip(self.tr('Insert package here (looks similar this: Yourname.ModName.ModName)'))
+        self.lineedit_package.setToolTip(self.tr('Insert package here (looks similar this: Yourname.ModName.ModName)'))
 
     def createConnects(self):
         self.button_done.clicked.connect(self.accept)

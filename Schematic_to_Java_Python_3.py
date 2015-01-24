@@ -6,6 +6,7 @@ import sys
 from MainWindow import *
 from Metadatarotation import rotate_meta_data
 from Options_Provider import OptionsProvider
+from struct import *
 
 DEBUGGING = False
 
@@ -275,11 +276,11 @@ class MainWindow(QtGui.QMainWindow):
                 # TAG_Byte
                 if tag == bytearray.fromhex('01'):
                     self.read_tag_name('Byte', tag_container[-1][0])
-                    debug_print(int.from_bytes(file_in.read(1), 'big'))
+                    debug_print(unpack('b', file_in.read(1))[0])
                 # TAG_Short
                 elif tag == bytearray.fromhex('02'):
                     name = self.read_tag_name('Short', tag_container[-1][0])
-                    number = int.from_bytes(file_in.read(2), 'big')
+                    number = unpack('>h', file_in.read(2))[0]
                     debug_print(number)
                     if name == 'Height':
                         self.height = number
@@ -293,19 +294,19 @@ class MainWindow(QtGui.QMainWindow):
                 # TAG_Int
                 elif tag == bytearray.fromhex('03'):
                     self.read_tag_name('Int', tag_container[-1][0])
-                    debug_print(int.from_bytes(file_in.read(4), 'big'))
+                    debug_print(unpack('>i', file_in.read(4))[0])
                 # TAG_Long
                 elif tag == bytearray.fromhex('04'):
                     self.read_tag_name('Long', tag_container[-1][0])
-                    debug_print(int.from_bytes(file_in.read(8), 'big'))
+                    debug_print(unpack('>q', file_in.read(8))[0])
                 # TAG_Float
                 elif tag == bytearray.fromhex('05'):
                     self.read_tag_name('Float', tag_container[-1][0])
-                    debug_print(int.from_bytes(file_in.read(4), 'big'))
+                    debug_print(unpack('>f', file_in.read(4))[0])
                 # TAG_Double
                 elif tag == bytearray.fromhex('06'):
                     self.read_tag_name('Double', tag_container[-1][0])
-                    debug_print(int.from_bytes(file_in.read(8), 'big'))
+                    debug_print(unpack('>d', file_in.read(8))[0])
                 # TAG_Byte_Array
                 elif tag == bytearray.fromhex('07'):
                     name = self.read_tag_name('Byte Array', tag_container[-1][0])
@@ -360,11 +361,14 @@ class MainWindow(QtGui.QMainWindow):
             ids_used = set(block_list)
             vanilla_block_set = set(block_id)
             unknown_blocks = ids_used - vanilla_block_set
+            block_counter = 0
             for unknown_block in unknown_blocks:
+                block_counter += 1
                 y = block_list.index(unknown_block) // self.height
                 z = (block_list.index(unknown_block) - y * self.height) // self.width
                 x = block_list.index(unknown_block) - y * self.height - z * self.width
-                dialog = dialog_custom_Block(self, x, y, z, unknown_block)
+                name = '(' + str(block_counter) + '/' + str(len(unknown_blocks)) + ')'
+                dialog = dialog_custom_Block(self, x, y, z, unknown_block, name)
                 dialog.exec_()
                 block_name.append(dialog.input_name)
                 block_id.append(unknown_block)
@@ -680,10 +684,10 @@ class MainWindow(QtGui.QMainWindow):
                         file_header = ('//Schematic to java Structure by jajo_11 | inspired by "MITHION\'S'
                                        '.SCHEMATIC TO JAVA CONVERTINGTOOL"\n\npackage {};\n\nimport '
                                        'java.util.Random;\n\nimport net.minecraft.block.Block;\nimport'
-                                       ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;{}'
+                                       ' net.minecraft.init.Blocks;\nimport net.minecraft.world.World;\n{}'
                                        '\n\npublic class {}\n{{\n	public boolean {}'
                                        '(World world, Random rand, int x, int y, int z)\n    {{\n')
-                        file_out.write(additional_packages, file_header.format(self.combobox_Package.currentText(),
+                        file_out.write(file_header.format(additional_packages, self.combobox_Package.currentText(),
                                        file_name, rotations + str(c)))
                     if g == 1500:
                         c += 1
