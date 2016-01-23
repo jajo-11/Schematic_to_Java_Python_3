@@ -3,7 +3,11 @@
 import gzip
 import sys
 
+from Dialog_Custom_Block_Manage import Dialog_Custom_Block_Manage
+from Dialog_Custom_Block_Save import Dialog_Custom_Block_Save
+from Dialog_Options import Dialog_Options
 from MainWindow import *
+from Dialog_Custom_Block import Dialog_Custom_Block
 from Metadatarotation import rotate_meta_data
 from Options_Provider import OptionsProvider
 from struct import *
@@ -93,12 +97,12 @@ class MainWindow(QtGui.QMainWindow):
         self.list_Generate_on.takeItem(self.list_Generate_on.currentRow())
 
     def open_manage_cbs(self):
-        dialog = dialog_custom_Block_manage(self)
+        dialog = Dialog_Custom_Block_Manage(self)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             self.cbs_file = dialog.selected
 
     def more_options(self):
-        dialog = dialog_options(self)
+        dialog = Dialog_Options(self)
         dialog.mcVersion = self.option.get('mcVersion')
         dialog.getTopSolidOrLiquidBlock = self.option.get('getTopSolidOrLiquidBlock')
         dialog.max_file_length = self.option.get('max_file_length')
@@ -368,7 +372,7 @@ class MainWindow(QtGui.QMainWindow):
                 z = (block_list.index(unknown_block) - y * self.height) // self.width
                 x = block_list.index(unknown_block) - y * self.height - z * self.width
                 name = '(' + str(block_counter) + '/' + str(len(unknown_blocks)) + ')'
-                dialog = dialog_custom_Block(self, x, y, z, unknown_block, name)
+                dialog = Dialog_Custom_Block(self, x, y, z, unknown_block, name)
                 dialog.exec_()
                 block_name.append(dialog.input_name)
                 block_id.append(unknown_block)
@@ -758,7 +762,7 @@ class MainWindow(QtGui.QMainWindow):
                 current_packages.append(current_package)
                 self.option.set('package', current_packages)
             if new_custom_block is True:
-                dialog = dialog_custom_Block_save(self, custom_blocks, custom_blocks_id, additional_packages)
+                dialog = Dialog_Custom_Block_Save(self, custom_blocks, custom_blocks_id, additional_packages)
                 dialog.exec_()
         else:
 

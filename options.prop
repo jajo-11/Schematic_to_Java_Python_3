@@ -1,5 +1,5 @@
 #Options for jajo_11 Schematic to java converter
-#first char is the type after a ' = ' is the name and after that the value
+#first char is the type followed by a ' = ' then the name and after that the value
 #"s" = string, "i" = int, "b" = boolean, "l" = list of strings
 b = getTopSolidOrLiquidBlock = True
 i = max_file_length = 1200
